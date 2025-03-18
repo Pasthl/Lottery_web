@@ -5,28 +5,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 如果存在倒计时元素
     if (countdownTimer) {
-        // 尝试从localStorage获取保存的结束时间
-        let savedEndTime = localStorage.getItem('lotteryEndTime');
         let endDate;
         
-        if (savedEndTime) {
-            // 如果有保存的结束时间，使用它
-            endDate = new Date(parseInt(savedEndTime));
+        // 检查元素上是否有data-end属性（服务器提供的结束时间）
+        const serverEndTime = countdownTimer.getAttribute('data-end');
+        
+        if (serverEndTime) {
+            // 使用服务器提供的结束时间
+            endDate = new Date(parseInt(serverEndTime));
+        } else {
+            // 尝试从localStorage获取保存的结束时间
+            let savedEndTime = localStorage.getItem('lotteryEndTime');
             
-            // 检查结束时间是否已过期（已经过去了）
-            if (endDate <= new Date()) {
-                // 如果已过期，创建新的结束时间
-                console.log("倒计时已过期，创建新的倒计时");
+            if (savedEndTime) {
+                // 如果有保存的结束时间，使用它
+                endDate = new Date(parseInt(savedEndTime));
+                
+                // 检查结束时间是否已过期（已经过去了）
+                if (endDate <= new Date()) {
+                    // 如果已过期，创建新的结束时间
+                    console.log("倒计时已过期，创建新的倒计时");
+                    endDate = createNewEndTime();
+                }
+            } else {
+                // 如果没有保存的结束时间，创建新的
+                console.log("没有保存的倒计时，创建新的倒计时");
                 endDate = createNewEndTime();
             }
-        } else {
-            // 如果没有保存的结束时间，创建新的
-            console.log("没有保存的倒计时，创建新的倒计时");
-            endDate = createNewEndTime();
+            
+            // 保存结束时间到localStorage（仅当没有服务器提供的时间时）
+            localStorage.setItem('lotteryEndTime', endDate.getTime().toString());
         }
-        
-        // 保存结束时间到localStorage
-        localStorage.setItem('lotteryEndTime', endDate.getTime().toString());
         
         // 启动倒计时
         startCountdown(endDate);
@@ -81,11 +90,6 @@ function startCountdown(endDate) {
             hoursElement.textContent = '00';
             minutesElement.textContent = '00';
             secondsElement.textContent = '00';
-            
-            // 倒计时结束后，可以清除localStorage中的时间或设置新的倒计时
-            // 这里我们选择清除，下次加载页面时会创建新的倒计时
-            localStorage.removeItem('lotteryEndTime');
-            
             return;
         }
         
@@ -152,10 +156,4 @@ function validateForm(event) {
         event.preventDefault();
         alert(errorMessage);
     }
-}
-
-// 添加一个重置倒计时的功能（可以在管理员界面使用）
-function resetCountdown() {
-    localStorage.removeItem('lotteryEndTime');
-    location.reload(); // 刷新页面以创建新的倒计时
 }
