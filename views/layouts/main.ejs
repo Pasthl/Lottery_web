@@ -4,8 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
+    <!-- 引入样式表 -->
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <%- body %>
+    <div class="container">
+        <!-- 页面主要内容将被插入到这里 -->
+        <%- body %>
+    </div>
+    
+    <!-- 引入JavaScript文件 -->
+    <script src="/js/main.js"></script>
 </body>
 </html>

@@ -29,6 +29,13 @@ app.use('/', require('./server/routes/main'));
 // 挂载管理员路由
 app.use('/admin', require('./server/routes/admin'));
 
+// 404处理 - 必须在其他所有路由之后
+app.all('*', (req, res) => {
+    res.status(404).render('404', { 
+        title: '页面未找到'
+    });
+});
+
 //启动Express服务器，监听指定的PORT
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
