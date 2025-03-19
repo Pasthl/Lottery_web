@@ -1,0 +1,143 @@
+<link rel="stylesheet" href="/css/dashboard.css">
+
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <h1>抽奖管理系统</h1>
+        <div class="user-info">
+            <span>角色: <%= userRole === 'superAdmin' ? '超级管理员' : '管理员' %></span>
+            <a href="/admin/logout" class="logout-btn">退出登录</a>
+        </div>
+    </header>
+    
+    <div class="welcome-message">
+        <div class="alert alert-success">
+            <%= welcomeMessage %>
+        </div>
+    </div>
+    
+    <div class="dashboard-content">
+        <div class="card">
+            <h2>抽奖设置</h2>
+            
+            <% if (typeof lotterySetting !== 'undefined' && lotterySetting) { %>
+            <div class="current-settings">
+                <h3>当前抽奖活动</h3>
+                <div class="setting-info">
+                    <p><strong>标题:</strong> <%= lotterySetting.title %></p>
+                    <p><strong>描述:</strong> <%= lotterySetting.description %></p>
+                    <p><strong>开始时间:</strong> <%= new Date(lotterySetting.startTime).toLocaleString() %></p>
+                    <p><strong>结束时间:</strong> <%= new Date(lotterySetting.endTime).toLocaleString() %></p>
+                    <p><strong>状态:</strong> 
+                        <% if(lotterySetting.status === 0) { %>
+                            未开始
+                        <% } else if(lotterySetting.status === 1) { %>
+                            进行中
+                        <% } else { %>
+                            已结束
+                        <% } %>
+                    </p>
+                    <p><strong>已开奖:</strong> <%= lotterySetting.isDrawn ? '是' : '否' %></p>
+                </div>
+            </div>
+            <% } %>
+            
+            <h3>设置新抽奖活动</h3>
+            <form id="lottery-settings" action="/admin/settings" method="post">
+                <div class="form-group">
+                    <label for="title">活动标题:</label>
+                    <input type="text" id="title" name="title" value="默认抽奖活动" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">活动描述:</label>
+                    <textarea id="description" name="description" rows="2">系统自动创建的活动</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nextDrawTime">下次抽奖时间:</label>
+                    <input type="datetime-local" id="nextDrawTime" name="nextDrawTime" required>
+                </div>
+                
+                <% if (userRole === 'superAdmin') { %>
+                <div class="form-group">
+                    <label for="specialCode">特殊验证码设置:</label>
+                    <input type="text" id="specialCode" name="specialCode" placeholder="设置特殊验证码">
+                    <small>只有超级管理员可以设置特殊验证码</small>
+                </div>
+                <% } %>
+                
+                <button type="submit" class="btn btn-primary">保存设置</button>
+            </form>
+        </div>
+        
+        <div class="card mt-4">
+            <h2>参与者审核</h2>
+            <div class="entries-list">
+                <% if (entries && entries.length > 0) { %>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户ID</th>
+                                <th>截图</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% entries.forEach(entry => { %>
+                                <tr>
+                                    <td><%= entry._id || entry.id %></td>
+                                    <td><%= entry.userId %></td>
+                                    <td>
+                                        <a href="<%= entry.imageUrl %>" target="_blank" class="image-preview">
+                                            查看截图
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="status <%= entry.approved ? 'approved' : 'pending' %>">
+                                            <%= entry.approved ? '已批准' : '待审核' %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <% if (!entry.approved) { %>
+                                            <form action="/admin/approve/<%= entry._id || entry.id %>" method="post" class="inline-form">
+                                                <button type="submit" class="btn btn-sm btn-success">批准</button>
+                                            </form>
+                                        <% } %>
+                                        <form action="/admin/delete/<%= entry._id || entry.id %>" method="post" class="inline-form">
+                                            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <p class="no-entries">暂无参与者数据</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 设置下次抽奖时间的默认值为现在时间24小时后
+    document.addEventListener('DOMContentLoaded', function() {
+        const nextDrawTimeInput = document.getElementById('nextDrawTime');
+        if (nextDrawTimeInput) {
+            const now = new Date();
+            now.setDate(now.getDate() + 1); // 添加24小时
+            
+            // 格式化日期时间为HTML datetime-local输入格式 (YYYY-MM-DDThh:mm)
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            nextDrawTimeInput.value = formattedDateTime;
+        }
+    });
+</script>

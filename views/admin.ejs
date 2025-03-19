@@ -1,4 +1,6 @@
 <!-- views/admin.ejs -->
+<link rel="stylesheet" href="/css/admin.css">
+
 <div class="admin-header">
     <h1>管理员控制面板</h1>
     <p class="subtitle">这里可以管理抽奖活动和条目</p>
@@ -6,19 +8,19 @@
 
 <section class="admin-panel">
     <div class="card">
-        <h2>登录</h2>
-        <form id="login-form" action="/admin/login" method="post">
+        <h2>验证码验证</h2>
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="error-message">
+                <%= error %>
+            </div>
+        <% } %>
+        <form id="verification-form" action="/admin/verify" method="post">
             <div class="form-group">
-                <label for="username">用户名：</label>
-                <input type="text" id="username" name="username" required>
+                <label for="verificationCode">请输入验证码：</label>
+                <input type="text" id="verificationCode" name="verificationCode" required>
             </div>
             
-            <div class="form-group">
-                <label for="password">密码：</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            
-            <button type="submit" class="btn">登录</button>
+            <button type="submit" class="btn">验证</button>
         </form>
     </div>
 </section>

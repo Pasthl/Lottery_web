@@ -55,8 +55,8 @@
             <ul class="winners-list">
                 <% winners.forEach(function(winner) { %>
                     <li>                 
-                        <span class="winner-id">用户ID: <%= winner.participantId %></span>                 
-                        <span class="winner-date">抽奖日期: <%= winner.reviewedAt ? new Date(winner.reviewedAt).toLocaleDateString() : '未知' %></span>             
+                        <span class="winner-id">用户ID: <%= winner.userId || winner.participantId %></span>                 
+                        <span class="winner-date">抽奖日期: <%= winner.drawnAt ? new Date(winner.drawnAt).toLocaleDateString() : (winner.reviewedAt ? new Date(winner.reviewedAt).toLocaleDateString() : '未知') %></span>             
                     </li>
                 <% }); %>
             </ul>
@@ -104,7 +104,7 @@
                 <!-- 参与者ID输入框 -->             
                 <div class="form-group">                 
                     <label for="participant-id">请输入你的燕云id</label>                 
-                    <input type="text" id="participant-id" name="participantId" required>                 
+                    <input type="text" id="participant-id" name="userId" required value="<%= typeof userId !== 'undefined' ? userId : '' %>">                 
                     <small>不准乱输，违者失去当次抽奖资格并奖励雁雁的一个大比斗</small>             
                 </div>                          
                 
@@ -120,24 +120,9 @@
             </form>
         <% } else { %>
             <!-- 如果没有进行中的抽奖活动 -->
-            <form id="lottery-form" action="/submit" method="post" enctype="multipart/form-data">             
-                <!-- 参与者ID输入框 -->             
-                <div class="form-group">                 
-                    <label for="participant-id">请输入你的燕云id</label>                 
-                    <input type="text" id="participant-id" name="participantId" required>                 
-                    <small>不准乱输，违者失去当次抽奖资格并奖励雁雁的一个大比斗</small>             
-                </div>                          
-                
-                <!-- 截图上传 -->             
-                <div class="form-group">                 
-                    <label for="screenshot">上传截图：</label>                 
-                    <input type="file" id="screenshot" name="screenshot" accept="image/*" required>                 
-                    <small>上传百业活跃度截图</small>             
-                </div>                          
-                
-                <!-- 提交按钮 -->             
-                <button type="submit" class="btn">提交参与</button>         
-            </form>
+            <div class="no-lottery-message">
+                <p>当前没有进行中的抽奖活动，请稍后再来！</p>
+            </div>
         <% } %>
     </div> 
 </section>  
@@ -150,3 +135,55 @@
 <div class="easter-egg-link">     
     <a href="/easter-egg" title="点击查看彩蛋">🥚 发现彩蛋!</a> 
 </div>
+
+<script>
+// 倒计时脚本
+document.addEventListener('DOMContentLoaded', function() {
+    const countdownEl = document.getElementById('countdown-timer');
+    
+    // 检查是否有倒计时日期
+    if (countdownEl && countdownEl.hasAttribute('data-end')) {
+        const endTime = parseInt(countdownEl.getAttribute('data-end'));
+        
+        // 更新倒计时
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+            
+            // 计算天、时、分、秒
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            // 更新显示
+            document.getElementById('days').innerText = String(days).padStart(2, '0');
+            document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+            
+            // 如果倒计时结束
+            if (distance < 0) {
+                document.getElementById('days').innerText = '00';
+                document.getElementById('hours').innerText = '00';
+                document.getElementById('minutes').innerText = '00';
+                document.getElementById('seconds').innerText = '00';
+                
+                // 可选：显示已结束消息
+                const countdownDiv = document.querySelector('.countdown h4');
+                if (countdownDiv) {
+                    countdownDiv.textContent = "抽奖已结束!";
+                }
+                
+                clearInterval(countdownInterval);
+            }
+        }
+        
+        // 立即运行一次
+        updateCountdown();
+        
+        // 每秒更新一次
+        const countdownInterval = setInterval(updateCountdown, 1000);
+    }
+});
+</script>

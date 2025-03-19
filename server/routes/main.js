@@ -54,6 +54,7 @@ router.get('/', async (req, res) => {
         // 尝试从数据库获取当前抽奖活动
         let currentLottery = null;
         let winners = [];
+        let approvedCount = 0;
         
         try {
             // 查找当前进行中的抽奖活动
@@ -62,11 +63,19 @@ router.get('/', async (req, res) => {
                 endTime: { $gt: new Date() } // 结束时间大于当前时间
             }).sort({ endTime: 1 }); // 按结束时间升序排序
             
+            // 如果有当前抽奖活动，获取已批准的参与者数量
+            if (currentLottery) {
+                approvedCount = await Entry.countDocuments({
+                    lottery: currentLottery._id,
+                    approved: true
+                });
+            }
+            
             // 查找最近的中奖者
             winners = await Entry.find({ 
-                isWinner: true 
+                winner: true 
             })
-            .sort({ reviewedAt: -1 }) // 按审核时间降序排序
+            .sort({ drawnAt: -1 }) // 按开奖时间降序排序
             .limit(5); // 限制数量为5
         } catch (dbErr) {
             console.error('数据库查询错误:', dbErr);
@@ -78,6 +87,7 @@ router.get('/', async (req, res) => {
             title: '抽奖活动主页',
             currentLottery,
             winners,
+            approvedCount,
             success
         });
     } catch (err) {
@@ -100,22 +110,16 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
         // 验证是否有抽奖活动ID
         if (!targetLotteryId) {
             // 查找当前活动
-            const currentLottery = await Lottery.findOne({ status: 1 });
+            const currentLottery = await Lottery.findOne({ 
+                status: 1,
+                endTime: { $gt: new Date() }
+            });
             
             if (!currentLottery) {
-                // 如果没有活动，创建一个默认活动
-                // 这仅用于开发阶段，生产环境应该返回错误
-                const defaultLottery = new Lottery({
-                    title: '默认抽奖活动',
-                    description: '系统自动创建的活动',
-                    startTime: new Date(),
-                    endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 一周后
-                    status: 1,
-                    createdBy: '60f1b0b3b9c2c8a0b4f1b0b3' // 一个虚构的ID，实际应该是真实管理员ID
+                return res.status(400).render('index', {
+                    title: '抽奖活动主页',
+                    error: '当前没有进行中的抽奖活动'
                 });
-                
-                const savedLottery = await defaultLottery.save();
-                targetLotteryId = savedLottery._id;
             } else {
                 targetLotteryId = currentLottery._id;
             }
@@ -123,24 +127,57 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
         
         // 检查是否上传了文件
         if (!req.file) {
-            return res.status(400).send('请上传截图');
+            return res.status(400).render('index', {
+                title: '抽奖活动主页',
+                error: '请上传截图'
+            });
+        }
+
+        // 检查用户ID是否提供
+        if (!participantId) {
+            return res.status(400).render('index', {
+                title: '抽奖活动主页',
+                error: '请提供您的ID'
+            });
+        }
+        
+        // 检查用户是否已经参与了当前抽奖
+        const existingEntry = await Entry.findOne({
+            participantId: participantId,
+            lottery: targetLotteryId
+        });
+        
+        if (existingEntry) {
+            return res.status(400).render('index', {
+                title: '抽奖活动主页',
+                error: '您已经参与过这次抽奖了',
+                participantId: participantId
+            });
         }
         
         // 创建新的抽奖条目
         const newEntry = new Entry({
             participantId,
             screenshot: `/uploads/${req.file.filename}`,
-            lottery: targetLotteryId
+            lottery: targetLotteryId,
+            approved: false,
+            winner: false,
+            createdAt: new Date()
         });
         
         // 保存到数据库
         await newEntry.save();
         
-        // 重定向回主页并显示成功消息
-        return res.redirect('/?success=true');
+        // 渲染感谢页面
+        return res.render('thankyou', {
+            message: '感谢参与！您的提交将在审核后生效。'
+        });
     } catch (err) {
         console.error('提交表单错误:', err);
-        return res.status(500).send('提交失败，请重试');
+        return res.status(500).render('index', {
+            title: '抽奖活动主页',
+            error: '提交失败，请重试'
+        });
     }
 });
 

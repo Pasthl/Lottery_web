@@ -1,58 +1,51 @@
 const mongoose = require('mongoose');
 
-// 定义抽奖条目模型架构
+// 定义参与抽奖条目的模型架构
 const EntrySchema = new mongoose.Schema({
-    // 参与者ID
+    // 用户ID/名称 - 改为 participantId
     participantId: {
         type: String,
-        required: [true, '请提供参与者ID'],
+        required: [true, '请提供用户ID'],
         trim: true
     },
-    // 截图文件路径
+    
+    // 截图URL - 改为 screenshot
     screenshot: {
         type: String,
-        required: [true, '请提供截图']
+        required: [true, '请提供截图URL']
     },
-    // 条目状态：0-待审核，1-已批准，2-已拒绝
-    status: {
-        type: Number,
-        default: 0,
-        enum: [0, 1, 2]
+    
+    // 关联的抽奖活动ID - 改为 lottery
+    lottery: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Lottery'
     },
-    // 是否为中奖者
-    isWinner: {
+    
+    // 是否已批准
+    approved: {
         type: Boolean,
         default: false
     },
-    // 审核评论
-    comment: {
-        type: String,
-        default: ''
+    
+    // 是否为中奖者
+    winner: {
+        type: Boolean,
+        default: false
     },
-    // 关联的抽奖活动
-    lottery: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Lottery',
-        required: true
-    },
-    // 审核者 - 管理员
-    reviewedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+    
+    // 开奖时间（如果是中奖者）
+    drawnAt: {
+        type: Date,
         default: null
     },
+    
     // 创建时间
     createdAt: {
         type: Date,
         default: Date.now
-    },
-    // 审核时间
-    reviewedAt: {
-        type: Date,
-        default: null
     }
 });
 
 // 创建并导出模型
-const Entry = mongoose.model('Entry', EntrySchema);
+const Entry = mongoose.model('Entry', EntrySchema, 'entries');
 module.exports = Entry;
