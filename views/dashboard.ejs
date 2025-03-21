@@ -100,7 +100,7 @@
                     <textarea id="description" name="description" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"></textarea>
                 </div>
                 
-                <!-- 移动提交验证码到这里，放在表单内部 -->
+                <!-- 设置验证码 -->
                 <div class="form-group">
                     <label for="submissionCode">提交验证码</label>
                     <input type="text" id="submissionCode" name="submissionCode" placeholder="留空则不需要验证码">
@@ -134,7 +134,7 @@
                         <thead>
                             <tr>
                                 <th>用户ID</th>
-                                <th>提交时间</th>
+                                <th>参与活动</th>
                                 <th>截图</th>
                                 <th>状态</th>
                                 <th>操作</th>
@@ -144,7 +144,7 @@
                             <% entries.forEach(entry => { %>
                                 <tr>
                                     <td><%= entry.participantId %></td>
-                                    <td><%= new Date(entry.createdAt).toLocaleString() %></td>
+                                    <td><%= entry.lotteryName || '未知活动' %></td>
                                     <td>
                                         <a href="<%= entry.screenshot %>" target="_blank" class="image-preview">
                                             查看截图

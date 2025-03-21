@@ -130,6 +130,12 @@ small {
     background-size: cover;
 }
 
+/* 关于按钮 */
+.about-btn {
+    background: url('../image/about-icon.png') no-repeat center center;
+    background-size: cover;
+}
+
 /* 主页头部 */
 .main-header {
     text-align: center;
@@ -283,6 +289,29 @@ input[type="file"] {
 .admin-link a:hover {
     color: #4CAF50;
     text-decoration: underline;
+}
+
+/* 代码块样式 */
+.code-block {
+    margin: 20px 0;
+    padding: 0;
+    overflow: auto;
+}
+
+.code-block pre {
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    padding: 15px;
+    overflow-x: auto;
+    margin: 0;
+    border-left: 4px solid #4CAF50;
+}
+
+.code-block code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
 }
 
 /* 响应式设计 */

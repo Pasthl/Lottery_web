@@ -1,0 +1,55 @@
+<div class="main-header">
+    <h1>关于抽奖</h1>
+    <p class="subtitle">做一个网站比现在长草的燕云十六声好玩</p>
+</div>
+
+<div class="card">
+    <h2>使用指南</h2>
+    <h3>参与抽奖</h3>
+    <p>如需参与抽奖，下拉至主页下方选择对应的抽奖并提交凭证即可。</p>
+</div>
+
+<div class="card">
+    <h2>抽奖逻辑</h2>
+    <p>管理员会审核抽奖者上传的凭证，通过后加入奖池，中奖者将会在抽奖结束后公布。</p>
+    <p>虽然我觉得0个人在意开奖代码的逻辑，但是为了公平我还是放一下吧：</p>
+    
+    <div class="code-block">
+        <pre class="line-numbers"><code class="language-javascript">
+// 查找所有已批准的参与者
+const approvedEntries = await Entry.find({
+    lottery: lotteryId,
+    approved: true,
+    winner: false // 确保这条记录之前没有被选为中奖者
+});
+
+// 检查是否有足够的参与者
+if (approvedEntries.length === 0) {
+    return res.status(400).render('404', {
+        title: '页面未找到'
+    });
+}
+
+// 随机选择一个中奖者
+const winnerIndex = Math.floor(Math.random() * approvedEntries.length); // 伟大的随机数降临了！
+const winner = approvedEntries[winnerIndex];
+
+// 更新中奖者信息
+await Entry.findByIdAndUpdate(winner._id, {
+    winner: true,
+    drawnAt: new Date()
+});
+    </code></pre>
+    </div>
+    
+    <p>通过JavaScript的Math.random()函数生成随机数，确保每位参与者都有平等的中奖机会。系统会从所有审核通过的参与者中随机选取一位作为最终中奖者。</p>
+</div>
+
+<div class="card">
+    <h2>联系方式</h2>
+    <p>写代码的是一个弱小可怜又无助的i人，如有疑问，请微信咨询雁京子老师。</p>
+</div>
+
+<div class="admin-link">
+    <a href="/">返回首页</a>
+</div>

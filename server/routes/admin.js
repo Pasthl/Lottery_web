@@ -100,15 +100,17 @@ router.get('/dashboard', async (req, res) => {
     // 获取所有参与者
     let entries = [];
     try {
-      entries = await Entry.find().sort({ createdAt: -1 }).limit(100);
+      // 使用 populate 方法关联 lottery 集合，以获取活动名称
+      entries = await Entry.find()
+                          .populate('lottery', 'title')
+                          .lean();
+      
+      // 添加 lotteryName 属性到每个 entry
+      entries.forEach(entry => {
+        entry.lotteryName = entry.lottery ? entry.lottery.title : '未知活动';
+      });
     } catch (err) {
-      console.error('获取参与者错误:', err);
-      // 使用示例数据作为备份
-      entries = [
-        { id: 1, userId: 'user123', imageUrl: '/uploads/image1.jpg', approved: false },
-        { id: 2, userId: 'user456', imageUrl: '/uploads/image2.jpg', approved: true },
-        { id: 3, userId: 'user789', imageUrl: '/uploads/image3.jpg', approved: false }
-      ];
+      console.error('获取参与者失败:', err);
     }
     
     // 判断用户角色，提供相应的欢迎语

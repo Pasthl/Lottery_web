@@ -270,10 +270,18 @@ router.post('/verify-submission', async (req, res) => {
 // 彩蛋页面路由
 router.get('/easter-egg', (req, res) => {
     res.render('easter-egg', { 
-      title: '彩蛋页面',
+      title: 'BREAKING...',
       layout: false 
     });
   });
+
+// 关于页面路由
+router.get('/about', (req, res) => {
+    res.render('about', { 
+        title: '关于本站',
+        currentPage: 'about' // 用于导航栏标识
+    });
+});
 
 // 处理404错误 - 捕获所有未匹配的GET请求
 router.get('*', (req, res) => {
