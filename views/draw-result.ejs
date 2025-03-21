@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- 引入自定义样式 -->
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .winner-section {
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+            z-index: 1; /* 确保内容在彩带上方 */
+        }
+        
+        .winner-title {
+            color: #ff6f00;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .winner-card {
+            background-color: #fff9c4;
+            border: 2px solid #ffd54f;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+        
+        .winner-info {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .winner-image {
+            max-width: 100%;
+            height: auto;
+            max-height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .confetti {
+            position: fixed; /* 改为fixed而不是absolute，确保相对于视口定位 */
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            top: -20px; /* 从视口顶部以上开始，确保它们"飘入"视图 */
+            animation: fall 8s linear infinite; /* 增加动画时间使其覆盖更多区域 */
+            z-index: 0; /* 确保彩带在内容下方 */
+            pointer-events: none; /* 确保彩带不会阻止点击页面上的元素 */
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg); /* 使用100vh确保覆盖整个视口高度 */
+                opacity: 0;
+            }
+        }
+        
+        .actions {
+            margin-top: 30px;
+        }
+
+        /* 确保卡片和按钮在彩带上方 */
+        .card, .btn {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 顶部导航栏 -->
+        <header class="dashboard-header">
+            <h1>抽奖管理系统</h1>
+            <div class="user-info">
+                <a href="/admin/dashboard" class="btn btn-success" style="margin-right: 10px;">返回仪表盘</a>
+                <a href="/admin/logout" class="logout-btn">退出登录</a>
+            </div>
+        </header>
+
+        <!-- 中奖结果显示 -->
+        <div class="card winner-section">
+            <h2 class="winner-title">🎉 恭喜！中奖者已产生 🎉</h2>
+            
+            <div class="winner-card">
+                <div class="winner-info">
+                    <p><strong>抽奖活动：</strong><%= lottery ? lottery.title : '未知活动' %></p>
+                    <p><strong>中奖者ID：</strong><%= winner.participantId %></p>
+                    <p><strong>提交时间：</strong><%= new Date(winner.createdAt).toLocaleString() %></p>
+                    <p><strong>开奖时间：</strong><%= new Date(winner.drawnAt).toLocaleString() %></p>
+                </div>
+                
+                <div>
+                    <h3>中奖者截图：</h3>
+                    <img src="<%= winner.screenshot %>" alt="中奖者截图" class="winner-image">
+                </div>
+            </div>
+            
+            <div class="actions">
+                <a href="/admin/dashboard" class="btn btn-primary">返回管理面板</a>
+                <a href="/" class="btn btn-success">查看首页</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 彩带效果的脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建100个彩带，增加数量以覆盖更大区域
+            for (let i = 0; i < 100; i++) {
+                createConfetti();
+            }
+            
+            // 每隔一段时间继续创建新彩带，保持效果持续
+            setInterval(() => {
+                createConfetti();
+            }, 300);
+            
+            function createConfetti() {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // 随机水平位置
+                confetti.style.left = Math.random() * 100 + 'vw';
+                
+                // 随机颜色 - 使用更多鲜艳的颜色
+                const colors = ['#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d', '#43aa8b', '#577590', '#ff0080', '#7400b8', '#4cc9f0'];
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 随机形状 - 方形、圆形或三角形
+                const shapes = ['square', 'circle', 'triangle'];
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                
+                if (shape === 'circle') {
+                    confetti.style.borderRadius = '50%';
+                } else if (shape === 'triangle') {
+                    confetti.style.width = '0';
+                    confetti.style.height = '0';
+                    confetti.style.backgroundColor = 'transparent';
+                    confetti.style.borderLeft = '5px solid transparent';
+                    confetti.style.borderRight = '5px solid transparent';
+                    confetti.style.borderBottom = '10px solid ' + colors[Math.floor(Math.random() * colors.length)];
+                }
+                
+                // 随机大小
+                const size = Math.random() * 10 + 5;
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                
+                // 随机旋转
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                // 随机动画持续时间
+                const duration = Math.random() * 5 + 3;
+                confetti.style.animationDuration = duration + 's';
+                
+                // 随机动画延迟
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                
+                document.body.appendChild(confetti);
+                
+                // 动画结束后移除元素以避免DOM过载
+                setTimeout(() => {
+                    confetti.remove();
+                }, (duration + 2) * 1000); // 动画时间+延迟+缓冲
+            }
+        });
+    </script>
+</body>
+</html>

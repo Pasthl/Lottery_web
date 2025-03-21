@@ -75,6 +75,7 @@ router.post('/verify', (req, res) => {
 });
 
 // 管理员仪表盘页面
+// 管理员仪表盘页面
 router.get('/dashboard', async (req, res) => {
   try {
     // 检查是否已经验证过身份
@@ -82,13 +83,19 @@ router.get('/dashboard', async (req, res) => {
       return res.redirect('/admin');
     }
     
-    // 获取最新的抽奖活动
-    let latestLottery = null;
+    // 获取所有未结束的抽奖活动（endTime大于当前时间）
+    let activeGames = [];
     try {
-      latestLottery = await Lottery.findOne().sort({ createdAt: -1 });
+      activeGames = await Lottery.find({
+        endTime: { $gt: new Date() }, // 结束时间大于当前时间
+        status: 1 // 状态为"进行中"
+      }).sort({ endTime: 1 }); // 按结束时间升序排序，最早结束的排在前面
     } catch (err) {
       console.error('获取抽奖活动错误:', err);
     }
+    
+    // 为了向后兼容，保留获取最新抽奖活动
+    let latestLottery = activeGames.length > 0 ? activeGames[0] : null;
     
     // 获取所有参与者
     let entries = [];
@@ -114,7 +121,8 @@ router.get('/dashboard', async (req, res) => {
       userRole: req.session.userRole,
       welcomeMessage,
       entries,
-      lotterySetting: latestLottery
+      lotterySetting: latestLottery, // 保留这个以确保向后兼容
+      activeGames: activeGames // 新添加的未结束抽奖活动列表
     });
   } catch (err) {
     console.error('仪表盘页面渲染错误:', err);
@@ -165,7 +173,11 @@ router.post('/approve/:id', async (req, res) => {
   try {
     // 检查是否已经验证过身份
     if (!req.session.isAuthenticated) {
-      return res.json({ success: false, message: '未授权访问' });
+      // 对AJAX请求返回JSON
+      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+        return res.status(403).json({ success: false, message: '未授权访问' });
+      }
+      return res.redirect('/admin');
     }
     
     await Entry.findByIdAndUpdate(req.params.id, { approved: true });
@@ -176,7 +188,7 @@ router.post('/approve/:id', async (req, res) => {
     }
     
     // 对传统表单提交返回重定向
-    res.redirect('/admin/dashboard');
+    res.redirect('/admin/dashboard#entries-section');
   } catch (err) {
     console.error('批准参与者错误:', err);
     
@@ -190,11 +202,15 @@ router.post('/approve/:id', async (req, res) => {
   }
 });
 
-// 删除参与者
+// 删除参与者 - 支持AJAX
 router.post('/delete/:id', async (req, res) => {
   try {
     // 检查是否已经验证过身份
     if (!req.session.isAuthenticated) {
+      // 对AJAX请求返回JSON
+      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+        return res.status(403).json({ success: false, message: '未授权访问' });
+      }
       return res.redirect('/admin');
     }
     
@@ -225,10 +241,133 @@ router.post('/delete/:id', async (req, res) => {
     // 然后从数据库中删除条目
     await Entry.findByIdAndDelete(req.params.id);
     
+    // 对AJAX请求返回JSON成功
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({ success: true });
+    }
+    
+    // 对传统表单提交返回重定向
     res.redirect('/admin/dashboard#entries-section');
   } catch (err) {
     console.error('删除参与者错误:', err);
+    
+    // 对AJAX请求返回JSON错误
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    
+    // 对传统表单提交返回错误页面
     res.status(500).send('服务器错误');
+  }
+});
+
+// 手动开奖功能
+router.post('/draw', async (req, res) => {
+  try {
+    // 检查是否已经验证过身份
+    if (!req.session.isAuthenticated) {
+      return res.redirect('/admin');
+    }
+
+    const { lotteryId } = req.body;
+    
+    // 验证是否提供了抽奖活动ID
+    if (!lotteryId) {
+      return res.status(400).render('404', {
+        title: '页面未找到'
+      });
+    }
+
+    // 获取抽奖活动信息
+    const lottery = await Lottery.findById(lotteryId);
+    
+    // 检查活动是否存在
+    if (!lottery) {
+      return res.status(404).render('404', {
+        title: '页面未找到'
+      });
+    }
+
+    // 检查活动是否已经开奖
+    if (lottery.isDrawn) {
+      return res.status(400).render('404', {
+        title: '页面未找到'
+      });
+    }
+
+    // 查找所有已批准的参与者
+    const approvedEntries = await Entry.find({
+      lottery: lotteryId,
+      approved: true,
+      winner: false // 确保之前没有被选为中奖者
+    });
+
+    // 检查是否有足够的参与者
+    if (approvedEntries.length === 0) {
+      return res.status(400).render('404', {
+        title: '页面未找到'
+      });
+    }
+
+    // 随机选择一个中奖者
+    const winnerIndex = Math.floor(Math.random() * approvedEntries.length);
+    const winner = approvedEntries[winnerIndex];
+
+    // 更新中奖者信息
+    await Entry.findByIdAndUpdate(winner._id, {
+      winner: true,
+      drawnAt: new Date()
+    });
+
+    // 更新抽奖活动状态
+    await Lottery.findByIdAndUpdate(lotteryId, {
+      isDrawn: true,
+      drawnAt: new Date(),
+      status: 2 // 已结束
+    });
+
+    // 重定向到结果页面
+    return res.redirect(`/admin/draw-result/${winner._id}`);
+  } catch (err) {
+    console.error('开奖错误:', err);
+    res.status(500).render('404', {
+      title: '页面未找到'
+    });
+  }
+});
+
+// 开奖结果页面
+router.get('/draw-result/:entryId', async (req, res) => {
+  try {
+    // 检查是否已经验证过身份
+    if (!req.session.isAuthenticated) {
+      return res.redirect('/admin');
+    }
+    
+    // 获取中奖者信息
+    const winner = await Entry.findById(req.params.entryId);
+    
+    // 检查是否找到中奖者
+    if (!winner) {
+      return res.status(404).render('404', {
+        title: '页面未找到'
+      });
+    }
+    
+    // 获取关联的抽奖活动
+    const lottery = await Lottery.findById(winner.lottery);
+    
+    // 渲染结果页面
+    res.render('draw-result', {
+      title: '开奖结果',
+      winner,
+      lottery
+    });
+  } catch (err) {
+    console.error('获取开奖结果错误:', err);
+    res.status(500).render('404', {
+      title: '页面未找到'
+    });
   }
 });
 

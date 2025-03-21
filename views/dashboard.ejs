@@ -1,85 +1,132 @@
-<link rel="stylesheet" href="/css/dashboard.css">
-
-<div class="dashboard-container">
-    <header class="dashboard-header">
-        <h1>抽奖管理系统</h1>
-        <div class="user-info">
-            <span>角色: <%= userRole === 'superAdmin' ? '超级管理员' : '管理员' %></span>
-            <a href="/admin/logout" class="logout-btn">退出登录</a>
-        </div>
-    </header>
-    
-    <div class="welcome-message">
-        <div class="alert alert-success">
-            <%= welcomeMessage %>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
-        <div class="card">
-            <h2>抽奖设置</h2>
-            
-            <% if (typeof lotterySetting !== 'undefined' && lotterySetting) { %>
-            <div class="current-settings">
-                <h3>当前抽奖活动</h3>
-                <div class="setting-info">
-                    <p><strong>标题:</strong> <%= lotterySetting.title %></p>
-                    <p><strong>描述:</strong> <%= lotterySetting.description %></p>
-                    <p><strong>开始时间:</strong> <%= new Date(lotterySetting.startTime).toLocaleString() %></p>
-                    <p><strong>结束时间:</strong> <%= new Date(lotterySetting.endTime).toLocaleString() %></p>
-                    <p><strong>状态:</strong> 
-                        <% if(lotterySetting.status === 0) { %>
-                            未开始
-                        <% } else if(lotterySetting.status === 1) { %>
-                            进行中
-                        <% } else { %>
-                            已结束
-                        <% } %>
-                    </p>
-                    <p><strong>已开奖:</strong> <%= lotterySetting.isDrawn ? '是' : '否' %></p>
-                </div>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- 引入自定义样式 -->
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 顶部导航栏 -->
+        <header class="dashboard-header">
+            <h1>抽奖管理系统</h1>
+            <div class="user-info">
+                <span><%= userRole === 'superAdmin' ? '超级管理员' : '管理员' %></span>
+                <a href="/admin/logout" class="logout-btn">退出登录</a>
             </div>
-            <% } %>
-            
-            <h3>设置新抽奖活动</h3>
-            <form id="lottery-settings" action="/admin/settings" method="post">
-                <div class="form-group">
-                    <label for="title">活动标题:</label>
-                    <input type="text" id="title" name="title" value="默认抽奖活动" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="description">活动描述:</label>
-                    <textarea id="description" name="description" rows="2">系统自动创建的活动</textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="nextDrawTime">下次抽奖时间:</label>
-                    <input type="datetime-local" id="nextDrawTime" name="nextDrawTime" required>
-                </div>
+        </header>
+
+        <!-- 欢迎消息 -->
+        <div class="welcome-message">
+            <div class="card">
+                <h2>管理员仪表盘</h2>
+                <p><%= welcomeMessage %></p>
                 
                 <% if (userRole === 'superAdmin') { %>
-                <div class="form-group">
-                    <label for="specialCode">特殊验证码设置:</label>
-                    <input type="text" id="specialCode" name="specialCode" placeholder="设置特殊验证码">
-                    <small>只有超级管理员可以设置特殊验证码</small>
-                </div>
+                    <div class="alert alert-success mt-4">
+                        <p><strong>超级管理员特权：</strong></p>
+                        <ul>
+                            <li>查看和管理所有抽奖活动</li>
+                            <li>设置特殊验证码</li>
+                            <li>管理其他管理员账户</li>
+                        </ul>
+                    </div>
                 <% } %>
-                
-                <button type="submit" class="btn btn-primary">保存设置</button>
-            </form>
+            </div>
         </div>
-        
-        <!-- 为锚点定位添加ID -->
-        <div id="entries-section" class="card mt-4">
-            <h2>参与者审核</h2>
-            <div class="entries-list">
-                <% if (entries && entries.length > 0) { %>
+
+        <!-- 显示所有未结束的抽奖活动 -->
+        <div class="card" id="active-lotteries-section">
+            <h2>未结束的抽奖活动</h2>
+            
+            <% if (activeGames && activeGames.length > 0) { %>
+                <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>活动标题</th>
+                                <th>描述</th>
+                                <th>开始时间</th>
+                                <th>结束时间</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% activeGames.forEach(game => { %>
+                                <tr>
+                                    <td><%= game.title %></td>
+                                    <td><%= game.description %></td>
+                                    <td><%= new Date(game.startTime).toLocaleString() %></td>
+                                    <td><%= new Date(game.endTime).toLocaleString() %></td>
+                                    <td>
+                                        <% if (game.status === 0) { %>
+                                            <span class="status pending">未开始</span>
+                                        <% } else if (game.status === 1) { %>
+                                            <span class="status approved">进行中</span>
+                                        <% } else if (game.status === 2) { %>
+                                            <span class="status">已结束</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <p class="no-entries">当前没有未结束的抽奖活动</p>
+            <% } %>
+        </div>
+
+        <!-- 设置抽奖 -->
+        <div class="card" id="lottery-settings-section">
+            <h2>设置新抽奖活动</h2>
+            
+            <form action="/admin/settings" method="POST">
+                <div class="form-group">
+                    <label for="title">活动标题</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nextDrawTime">下次开奖时间</label>
+                    <input type="datetime-local" id="nextDrawTime" name="nextDrawTime" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">活动描述</label>
+                    <textarea id="description" name="description" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"></textarea>
+                </div>
+                
+                <% if (userRole === 'superAdmin') { %>
+                    <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 15px;">超级管理员设置</h3>
+                        <div class="form-group">
+                            <label for="specialCode">设置特殊验证码</label>
+                            <input type="text" id="specialCode" name="specialCode" placeholder="留空则不更改">
+                            <small>这将更改管理员验证码，请谨慎设置</small>
+                        </div>
+                    </div>
+                <% } %>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">保存设置</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 参与者列表 -->
+        <div class="card" id="entries-section">
+            <h2>参与者管理</h2>
+            
+            <% if (entries && entries.length > 0) { %>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
                                 <th>用户ID</th>
+                                <th>提交时间</th>
                                 <th>截图</th>
                                 <th>状态</th>
                                 <th>操作</th>
@@ -88,69 +135,82 @@
                         <tbody>
                             <% entries.forEach(entry => { %>
                                 <tr>
-                                    <td><%= entry._id || entry.id %></td>
-                                    <td><%= entry.participantId || entry.userId || '未知用户' %></td>
+                                    <td><%= entry.participantId %></td>
+                                    <td><%= new Date(entry.createdAt).toLocaleString() %></td>
                                     <td>
                                         <a href="<%= entry.screenshot %>" target="_blank" class="image-preview">
                                             查看截图
                                         </a>
                                     </td>
                                     <td>
-                                        <span class="status <%= entry.approved ? 'approved' : 'pending' %>">
-                                            <%= entry.approved ? '已批准' : '待审核' %>
-                                        </span>
+                                        <% if (entry.approved) { %>
+                                            <span class="status approved">已批准</span>
+                                        <% } else { %>
+                                            <span class="status pending">待审核</span>
+                                        <% } %>
+                                        
+                                        <% if (entry.winner) { %>
+                                            <span class="status winner" style="background-color: #ffecb3; color: #ff6f00; margin-left: 5px;">中奖者</span>
+                                        <% } %>
                                     </td>
                                     <td>
                                         <% if (!entry.approved) { %>
-                                            <!-- 使用锚点来保持页面位置 -->
-                                            <form action="/admin/approve/<%= entry._id || entry.id %>#entries-section" method="post" class="inline-form">
-                                                <button type="submit" class="btn btn-sm btn-success">批准</button>
+                                            <form action="/admin/approve/<%= entry._id %>" method="POST" class="inline-form">
+                                                <button type="submit" class="btn btn-success btn-sm">批准</button>
                                             </form>
                                         <% } %>
-                                        <form action="/admin/delete/<%= entry._id || entry.id %>#entries-section" method="post" class="inline-form">
-                                            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                                        
+                                        <form action="/admin/delete/<%= entry._id %>" method="POST" class="inline-form">
+                                            <button type="submit" class="btn btn-danger btn-sm">删除</button>
                                         </form>
                                     </td>
                                 </tr>
                             <% }); %>
                         </tbody>
                     </table>
-                <% } else { %>
-                    <p class="no-entries">暂无参与者数据</p>
-                <% } %>
+                </div>
+            <% } else { %>
+                <p class="no-entries">当前没有参与者</p>
+            <% } %>
+        </div>
+        
+        <!-- 开奖功能 -->
+        <div class="card">
+            <h2>手动开奖</h2>
+            
+            <div class="alert alert-success" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+                <p>开奖将随机从所有已批准的参与者中选择中奖者。此操作不可撤销！</p>
             </div>
+            
+            <form action="/admin/draw" method="POST">
+                <div class="form-group">
+                    <label for="lotteryId">选择抽奖活动</label>
+                    <select id="lotteryId" name="lotteryId" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                        <% if (activeGames && activeGames.length > 0) { %>
+                            <% activeGames.forEach(game => { %>
+                                <option value="<%= game._id %>"><%= game.title %> (截止: <%= new Date(game.endTime).toLocaleString() %>)</option>
+                            <% }); %>
+                        <% } else { %>
+                            <option disabled>没有可开奖的活动</option>
+                        <% } %>
+                    </select>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="submit" class="btn btn-danger" <%= !activeGames || activeGames.length === 0 ? 'disabled' : '' %>>
+                        立即开奖
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
 
-<script>
-    // 设置下次抽奖时间的默认值为现在时间24小时后
-    document.addEventListener('DOMContentLoaded', function() {
-        const nextDrawTimeInput = document.getElementById('nextDrawTime');
-        if (nextDrawTimeInput) {
-            const now = new Date();
-            now.setDate(now.getDate() + 1); // 添加24小时
-            
-            // 格式化日期时间为HTML datetime-local输入格式 (YYYY-MM-DDThh:mm)
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            
-            const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-            nextDrawTimeInput.value = formattedDateTime;
-        }
-        
-        // 保存滚动位置
-        window.addEventListener('beforeunload', function() {
-            localStorage.setItem('scrollPosition', window.scrollY);
-        });
-        
-        // 恢复滚动位置
-        const scrollPosition = localStorage.getItem('scrollPosition');
-        if (scrollPosition) {
-            window.scrollTo(0, parseInt(scrollPosition));
-        }
-    });
-</script>
+    <!-- 页脚 -->
+    <footer style="text-align: center; margin-top: 30px; padding: 15px; color: #666; font-size: 0.9rem;">
+        <p>&copy; <%= new Date().getFullYear() %> 抽奖管理系统. 保留所有权利.</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/js/admin.js"></script>
+</body>
+</html>
