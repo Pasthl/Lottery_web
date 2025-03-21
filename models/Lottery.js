@@ -57,6 +57,12 @@ const LotterySchema = new mongoose.Schema({
     drawnAt: {
         type: Date,
         default: null
+    },
+
+    // 验证码
+    submissionCode: {
+        type: String,
+        default: '' // 默认为空，表示不需要验证码
     }
 });
 

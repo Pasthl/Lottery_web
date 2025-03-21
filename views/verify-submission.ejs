@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交验证</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .verification-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .verification-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .verification-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .verification-form {
+            margin-top: 20px;
+        }
+        
+        .verification-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .verification-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .verification-button:hover {
+            background-color: #45a049;
+        }
+        
+        .error-message {
+            color: #f44336;
+            margin: 10px 0;
+        }
+        
+        .return-link {
+            display: block;
+            margin-top: 20px;
+            color: #2196f3;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <h1 class="verification-title">提交验证</h1>
+        <p class="verification-subtitle">请输入管理员提供的验证码完成提交</p>
+        
+        <% if (error) { %>
+            <div class="error-message"><%= error %></div>
+        <% } %>
+        
+        <form action="/verify-submission" method="POST" class="verification-form">
+            <!-- 隐藏的表单数据 -->
+            <input type="hidden" name="participantId" value="<%= formData.participantId %>">
+            <input type="hidden" name="lottery" value="<%= formData.lottery %>">
+            <input type="hidden" name="screenshotPath" value="<%= formData.screenshotPath %>">
+            
+            <input type="text" name="submissionCode" class="verification-input" placeholder="请输入验证码" required>
+            <button type="submit" class="verification-button">验证并提交</button>
+        </form>
+        
+        <a href="/" class="return-link">返回首页</a>
+    </div>
+</body>
+</html>

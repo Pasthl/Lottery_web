@@ -99,7 +99,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 提交抽奖表单
+// 修改提交抽奖表单路由
 router.post('/submit', upload.single('screenshot'), async (req, res) => {
     try {
         // 获取表单数据
@@ -155,11 +155,99 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
             });
         }
         
-        // 创建新的抽奖条目
+        // 获取抽奖活动信息，检查是否设置了验证码
+        const lotteryInfo = await Lottery.findById(targetLotteryId);
+        console.log('抽奖活动信息:', lotteryInfo);
+        
+        // 检查该抽奖活动是否设置了验证码
+        if (lotteryInfo && lotteryInfo.submissionCode && lotteryInfo.submissionCode.trim() !== '') {
+            // 活动设置了验证码，需要用户验证
+            console.log('该活动设置了验证码，需要验证');
+            
+            // 保存表单数据，以便验证后使用
+            const formData = {
+                participantId,
+                lottery: targetLotteryId,
+                screenshotPath: `/uploads/${req.file.filename}`
+            };
+            
+            // 渲染验证页面
+            return res.render('verify-submission', {
+                formData,
+                error: null
+            });
+        } else {
+            // 没有设置验证码，直接创建新的抽奖条目
+            console.log('该活动没有设置验证码，直接提交');
+            
+            const newEntry = new Entry({
+                participantId,
+                screenshot: `/uploads/${req.file.filename}`,
+                lottery: targetLotteryId,
+                approved: false,
+                winner: false,
+                createdAt: new Date()
+            });
+            
+            // 保存到数据库
+            await newEntry.save();
+            
+            // 渲染感谢页面
+            return res.render('thankyou', {
+                title: '提交成功',
+                message: '感谢参与！你的提交会经过管理员审核后加入奖池！'
+            });
+        }
+    } catch (err) {
+        console.error('提交表单错误:', err);
+        return res.status(500).render('index', {
+            title: '抽奖活动主页',
+            error: '提交失败，请重试'
+        });
+    }
+});
+
+// 添加验证码验证路由
+router.post('/verify-submission', async (req, res) => {
+    try {
+        const { submissionCode, participantId, lottery: lotteryId, screenshotPath } = req.body;
+        
+        // 获取抽奖活动
+        const lottery = await Lottery.findById(lotteryId);
+        
+        if (!lottery) {
+            return res.status(400).render('index', {
+                title: '抽奖活动主页',
+                error: '抽奖活动不存在'
+            });
+        }
+        
+        console.log('验证码比对:', {
+            用户输入: submissionCode,
+            数据库中: lottery.submissionCode
+        });
+        
+        // 验证码比对
+        if (submissionCode !== lottery.submissionCode) {
+            // 验证失败，重新显示验证页面
+            const formData = {
+                participantId,
+                lottery: lotteryId,
+                screenshotPath
+            };
+            
+            return res.render('verify-submission', {
+                title: '验证提交',
+                formData,
+                error: '验证码不正确，请重试'
+            });
+        }
+        
+        // 验证成功，创建新的抽奖条目
         const newEntry = new Entry({
             participantId,
-            screenshot: `/uploads/${req.file.filename}`,
-            lottery: targetLotteryId,
+            screenshot: screenshotPath,
+            lottery: lotteryId,
             approved: false,
             winner: false,
             createdAt: new Date()
@@ -173,8 +261,9 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
             title: '提交成功',
             message: '感谢参与！你的提交会经过管理员审核后加入奖池！'
         });
+        
     } catch (err) {
-        console.error('提交表单错误:', err);
+        console.error('验证提交错误:', err);
         return res.status(500).render('index', {
             title: '抽奖活动主页',
             error: '提交失败，请重试'

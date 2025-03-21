@@ -15,6 +15,7 @@
             <div class="user-info">
                 <span><%= userRole === 'superAdmin' ? '超级管理员' : '管理员' %></span>
                 <a href="/admin/logout" class="logout-btn">退出登录</a>
+                <a href="/" class="backtomenu-btn">返回主页</a>
             </div>
         </header>
 
@@ -97,6 +98,13 @@
                 <div class="form-group">
                     <label for="description">活动描述</label>
                     <textarea id="description" name="description" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"></textarea>
+                </div>
+                
+                <!-- 移动提交验证码到这里，放在表单内部 -->
+                <div class="form-group">
+                    <label for="submissionCode">提交验证码</label>
+                    <input type="text" id="submissionCode" name="submissionCode" placeholder="留空则不需要验证码">
+                    <small>设置后，用户提交表单时需要输入此验证码</small>
                 </div>
                 
                 <% if (userRole === 'superAdmin') { %>

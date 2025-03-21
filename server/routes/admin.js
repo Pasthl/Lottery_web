@@ -138,27 +138,29 @@ router.post('/settings', async (req, res) => {
       return res.redirect('/admin');
     }
     
-    const { title, description, nextDrawTime } = req.body;
+    // 正确地从请求体中提取所有字段
+    const { title, description, nextDrawTime, submissionCode, specialCode } = req.body;
+    
+    console.log('提交的表单数据:', req.body); // 添加调试日志
     
     // 创建新的抽奖活动
     const newLottery = new Lottery({
       title: title || "默认抽奖活动",
       description: description || "系统自动创建的活动",
-      startTime: new Date(), // 当前时间作为开始时间
-      endTime: new Date(nextDrawTime), // 下次抽奖时间作为结束时间
-      status: 1, // 进行中
-      createdBy: req.session.adminId || req.session.userRole, // 使用简单标识符
-      isDrawn: false
+      startTime: new Date(), 
+      endTime: new Date(nextDrawTime),
+      status: 1,
+      createdBy: req.session.adminId || req.session.userRole,
+      isDrawn: false,
+      submissionCode: submissionCode || '' // 使用提取的submissionCode
     });
     
     await newLottery.save();
     
-    // 如果是超级管理员，可以处理特殊验证码设置
-    if (req.session.userRole === 'superAdmin' && req.body.specialCode) {
-      // 这里可以实现保存特殊验证码的逻辑
-      console.log('设置特殊验证码:', req.body.specialCode);
-      // 简单示例：保存到环境变量(仅在本次运行中有效)
-      process.env.ADMIN_CODE = req.body.specialCode;
+    // 处理特殊验证码设置
+    if (req.session.userRole === 'superAdmin' && specialCode) {
+      console.log('设置特殊验证码:', specialCode);
+      process.env.ADMIN_CODE = specialCode;
     }
     
     res.redirect('/admin/dashboard');
