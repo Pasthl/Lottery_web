@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 
+const fs = require('fs');     
+const path = require('path'); 
+
 // 导入模型
 const Lottery = require('../../models/Lottery');
 const Entry = require('../../models/Entry');
@@ -157,18 +160,32 @@ router.post('/settings', async (req, res) => {
   }
 });
 
-// 审核参与者
+// 审核参与者 - 支持AJAX
 router.post('/approve/:id', async (req, res) => {
   try {
     // 检查是否已经验证过身份
     if (!req.session.isAuthenticated) {
-      return res.redirect('/admin');
+      return res.json({ success: false, message: '未授权访问' });
     }
     
     await Entry.findByIdAndUpdate(req.params.id, { approved: true });
+    
+    // 对AJAX请求返回JSON
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({ success: true });
+    }
+    
+    // 对传统表单提交返回重定向
     res.redirect('/admin/dashboard');
   } catch (err) {
     console.error('批准参与者错误:', err);
+    
+    // 对AJAX请求返回JSON错误
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    
+    // 对传统表单提交返回错误页面
     res.status(500).send('服务器错误');
   }
 });
@@ -181,8 +198,34 @@ router.post('/delete/:id', async (req, res) => {
       return res.redirect('/admin');
     }
     
+    // 先获取条目，以便获取文件路径
+    const entry = await Entry.findById(req.params.id);
+    
+    if (entry && entry.screenshot) {
+      // 获取文件的系统路径
+      const filePath = path.join(__dirname, '../../public', entry.screenshot);
+      
+      // 检查文件是否存在
+      fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (!err) {
+          // 文件存在，删除它
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error('删除文件错误:', unlinkErr);
+            } else {
+              console.log('成功删除文件:', filePath);
+            }
+          });
+        } else {
+          console.log('文件不存在:', filePath);
+        }
+      });
+    }
+    
+    // 然后从数据库中删除条目
     await Entry.findByIdAndDelete(req.params.id);
-    res.redirect('/admin/dashboard');
+    
+    res.redirect('/admin/dashboard#entries-section');
   } catch (err) {
     console.error('删除参与者错误:', err);
     res.status(500).send('服务器错误');

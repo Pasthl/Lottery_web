@@ -70,7 +70,8 @@
             </form>
         </div>
         
-        <div class="card mt-4">
+        <!-- 为锚点定位添加ID -->
+        <div id="entries-section" class="card mt-4">
             <h2>参与者审核</h2>
             <div class="entries-list">
                 <% if (entries && entries.length > 0) { %>
@@ -88,9 +89,9 @@
                             <% entries.forEach(entry => { %>
                                 <tr>
                                     <td><%= entry._id || entry.id %></td>
-                                    <td><%= entry.userId %></td>
+                                    <td><%= entry.participantId || entry.userId || '未知用户' %></td>
                                     <td>
-                                        <a href="<%= entry.imageUrl %>" target="_blank" class="image-preview">
+                                        <a href="<%= entry.screenshot %>" target="_blank" class="image-preview">
                                             查看截图
                                         </a>
                                     </td>
@@ -101,11 +102,12 @@
                                     </td>
                                     <td>
                                         <% if (!entry.approved) { %>
-                                            <form action="/admin/approve/<%= entry._id || entry.id %>" method="post" class="inline-form">
+                                            <!-- 使用锚点来保持页面位置 -->
+                                            <form action="/admin/approve/<%= entry._id || entry.id %>#entries-section" method="post" class="inline-form">
                                                 <button type="submit" class="btn btn-sm btn-success">批准</button>
                                             </form>
                                         <% } %>
-                                        <form action="/admin/delete/<%= entry._id || entry.id %>" method="post" class="inline-form">
+                                        <form action="/admin/delete/<%= entry._id || entry.id %>#entries-section" method="post" class="inline-form">
                                             <button type="submit" class="btn btn-sm btn-danger">删除</button>
                                         </form>
                                     </td>
@@ -138,6 +140,17 @@
             
             const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
             nextDrawTimeInput.value = formattedDateTime;
+        }
+        
+        // 保存滚动位置
+        window.addEventListener('beforeunload', function() {
+            localStorage.setItem('scrollPosition', window.scrollY);
+        });
+        
+        // 恢复滚动位置
+        const scrollPosition = localStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
         }
     });
 </script>

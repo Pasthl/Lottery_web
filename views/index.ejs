@@ -55,7 +55,7 @@
             <ul class="winners-list">
                 <% winners.forEach(function(winner) { %>
                     <li>                 
-                        <span class="winner-id">用户ID: <%= winner.userId || winner.participantId %></span>                 
+                        <span class="winner-id">用户ID: <%= winner.participantId || winner.userId %></span>                 
                         <span class="winner-date">抽奖日期: <%= winner.drawnAt ? new Date(winner.drawnAt).toLocaleDateString() : (winner.reviewedAt ? new Date(winner.reviewedAt).toLocaleDateString() : '未知') %></span>             
                     </li>
                 <% }); %>
@@ -99,12 +99,12 @@
                 <% } %>
                 
                 <!-- 隐藏的抽奖活动ID -->
-                <input type="hidden" name="lotteryId" value="<%= currentLottery._id %>">
+                <input type="hidden" name="lottery" value="<%= currentLottery._id %>">
                 
                 <!-- 参与者ID输入框 -->             
                 <div class="form-group">                 
                     <label for="participant-id">请输入你的燕云id</label>                 
-                    <input type="text" id="participant-id" name="userId" required value="<%= typeof userId !== 'undefined' ? userId : '' %>">                 
+                    <input type="text" id="participant-id" name="participantId" required value="<%= typeof participantId !== 'undefined' ? participantId : '' %>">                 
                     <small>不准乱输，违者失去当次抽奖资格并奖励雁雁的一个大比斗</small>             
                 </div>                          
                 

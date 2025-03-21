@@ -103,9 +103,9 @@ router.get('/', async (req, res) => {
 router.post('/submit', upload.single('screenshot'), async (req, res) => {
     try {
         // 获取表单数据
-        const { participantId, lotteryId } = req.body;
+        const { participantId, lottery } = req.body;
         
-        let targetLotteryId = lotteryId;
+        let targetLotteryId = lottery;
         
         // 验证是否有抽奖活动ID
         if (!targetLotteryId) {
@@ -170,7 +170,8 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
         
         // 渲染感谢页面
         return res.render('thankyou', {
-            message: '感谢参与！您的提交将在审核后生效。'
+            title: '提交成功',
+            message: '感谢参与！你的提交会经过管理员审核后加入奖池！'
         });
     } catch (err) {
         console.error('提交表单错误:', err);
