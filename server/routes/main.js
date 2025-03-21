@@ -51,43 +51,36 @@ router.get('/', async (req, res) => {
         // 判断是否有成功提交的消息
         const success = req.query.success === 'true' ? 'true' : undefined;
         
-        // 尝试从数据库获取当前抽奖活动
-        let currentLottery = null;
+        // 获取所有进行中的抽奖活动
+        let activeGames = [];
         let winners = [];
-        let approvedCount = 0;
         
         try {
-            // 查找当前进行中的抽奖活动
-            currentLottery = await Lottery.findOne({ 
+            // 查找所有进行中的抽奖活动
+            activeGames = await Lottery.find({ 
                 status: 1, // 状态为"进行中"
                 endTime: { $gt: new Date() } // 结束时间大于当前时间
             }).sort({ endTime: 1 }); // 按结束时间升序排序
             
-            // 如果有当前抽奖活动，获取已批准的参与者数量
-            if (currentLottery) {
-                approvedCount = await Entry.countDocuments({
-                    lottery: currentLottery._id,
-                    approved: true
-                });
-            }
+            // 获取当前最早结束的抽奖活动作为默认活动
+            const currentLottery = activeGames.length > 0 ? activeGames[0] : null;
             
             // 查找最近的中奖者
-            winners = await Entry.find({ 
-                winner: true 
-            })
-            .sort({ drawnAt: -1 }) // 按开奖时间降序排序
-            .limit(5); // 限制数量为5
+            winners = await Entry.find({ winner: true })
+                .populate('lottery', 'title') // 填充抽奖活动信息，只获取标题字段
+                .sort({ drawnAt: -1 }) // 按开奖时间降序排序
+                .limit(5); // 限制数量为5
         } catch (dbErr) {
             console.error('数据库查询错误:', dbErr);
-            // 数据库错误时继续使用空值，会显示静态内容
         }
         
         // 渲染主页
         res.render('index', {
             title: '抽奖活动主页',
-            currentLottery,
+            currentPage: 'home', // 用于导航栏标识
+            currentLottery: activeGames.length > 0 ? activeGames[0] : null, // 保留兼容性
+            activeGames,  // 传递所有进行中的抽奖活动
             winners,
-            approvedCount,
             success
         });
     } catch (err) {
@@ -173,6 +166,8 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
             
             // 渲染验证页面
             return res.render('verify-submission', {
+                title: '验证提交',
+                lotteryTitle: lotteryInfo.title, // 传递活动标题
                 formData,
                 error: null
             });
@@ -238,6 +233,7 @@ router.post('/verify-submission', async (req, res) => {
             
             return res.render('verify-submission', {
                 title: '验证提交',
+                lotteryTitle: lottery.title,
                 formData,
                 error: '验证码不正确，请重试'
             });
@@ -270,6 +266,14 @@ router.post('/verify-submission', async (req, res) => {
         });
     }
 });
+
+// 彩蛋页面路由
+router.get('/easter-egg', (req, res) => {
+    res.render('easter-egg', { 
+      title: '彩蛋页面',
+      layout: false 
+    });
+  });
 
 // 处理404错误 - 捕获所有未匹配的GET请求
 router.get('*', (req, res) => {

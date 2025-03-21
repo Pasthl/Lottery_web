@@ -73,6 +73,63 @@ small {
     margin-top: 5px;
 }
 
+/* 顶部导航栏 */
+.top-nav {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.brand a {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 通用按钮样式 */
+.nav-btn {
+    display: block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.nav-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 彩蛋按钮 */
+.easter-egg-btn {
+    background: url('../image/easter-egg-icon.png') no-repeat center center;
+    background-size: cover;
+}
+
+/* 管理员按钮 */
+.admin-btn {
+    background: url('../image/admin-icon.png') no-repeat center center;
+    background-size: cover;
+}
+
 /* 主页头部 */
 .main-header {
     text-align: center;
@@ -113,33 +170,37 @@ small {
     text-align: center;
 }
 
-/* 中奖名单样式 */
-.winners-section {
-    margin-bottom: 30px;
+/* 中奖名单表格样式 */
+.winners-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.winners-list {
-    list-style: none;
+.winner-row {
+    border-bottom: 1px solid #eee;
 }
 
-.winners-list li {
-    padding: 15px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.winners-list li:last-child {
+.winner-row:last-child {
     border-bottom: none;
 }
 
+.winner-row td {
+    padding: 12px 0;
+}
+
 .winner-id {
-    font-weight: bold;
+    width: 25%;
+    text-align: left;
+}
+
+.lottery-name {
+    width: 25%;
+    text-align: left;
 }
 
 .winner-date {
-    color: #666;
+    width: 25%;
+    text-align: right;
 }
 
 /* 表单样式 */

@@ -3,7 +3,7 @@
 <!-- 页面标题部分 --> 
 <div class="main-header">     
     <h1>这是一个很正经的抽奖网站</h1>     
-    <p class="subtitle">这是抽奖网站的主页面</p> 
+    <p class="subtitle">抽奖前请去功德池拜一拜，说不定会有鸿运当头哦</p> 
 </div>  
 
 <!-- 活动信息部分 --> 
@@ -46,44 +46,36 @@
     </div> 
 </section>  
 
-<!-- 上一期中奖名单部分 --> 
-<section class="winners-section">     
-    <div class="card">         
-        <h2>上一期中奖名单</h2>         
+<!-- 上一期中奖名单部分 -->  
+<section class="winners-section">
+    <div class="card">
+        <h2>上一期中奖名单</h2>
         <% if (typeof winners !== 'undefined' && winners && winners.length > 0) { %>
             <!-- 数据库中的中奖者 -->
-            <ul class="winners-list">
+            <table class="winners-table">
                 <% winners.forEach(function(winner) { %>
-                    <li>                 
-                        <span class="winner-id">用户ID: <%= winner.participantId || winner.userId %></span>                 
-                        <span class="winner-date">抽奖日期: <%= winner.drawnAt ? new Date(winner.drawnAt).toLocaleDateString() : (winner.reviewedAt ? new Date(winner.reviewedAt).toLocaleDateString() : '未知') %></span>             
-                    </li>
+                    <tr class="winner-row">
+                        <td class="winner-id">用户ID: <%= winner.participantId || winner.userId %></td>
+                        <td class="lottery-name">活动: <%= winner.lottery ? winner.lottery.title : '未知活动' %></td>
+                        <td class="winner-date">抽奖日期: <%= winner.drawnAt ? new Date(winner.drawnAt).toLocaleDateString() : '未知' %></td>
+                    </tr>
                 <% }); %>
-            </ul>
+            </table>
         <% } else { %>
-            <!-- 静态示例数据 -->         
-            <ul class="winners-list">             
-                <li>                 
-                    <span class="winner-id">用户ID: 白猫警司</span>                 
-                    <span class="winner-date">抽奖日期: 2025-02-14</span>             
-                </li>             
-                <li>                 
-                    <span class="winner-id">用户ID: 黑猫警督</span>                 
-                    <span class="winner-date">抽奖日期: 2025-02-14</span>             
-                </li>         
-            </ul>
+            <p class="no-winners">暂无中奖记录</p>
         <% } %>
-    </div> 
-</section>  
+    </div>
+</section>
 
-<!-- 参与抽奖表单部分 --> 
-<section class="entry-form">     
-    <div class="card">         
-        <h2>参与本期抽奖</h2>         
+<!-- 参与抽奖表单部分 -->  
+<section class="entry-form">
+    <div class="card">
+        <h2>参与抽奖</h2>
         
-        <% if (typeof currentLottery !== 'undefined' && currentLottery) { %>
-            <!-- 表单提交到/submit路由 -->         
-            <form id="lottery-form" action="/submit" method="post" enctype="multipart/form-data">             
+        <% if (typeof activeGames !== 'undefined' && activeGames && activeGames.length > 0) { %>
+            <!-- 表单提交到/submit路由 -->
+            <form id="lottery-form" action="/submit" method="post" enctype="multipart/form-data">
+                
                 <!-- 显示成功消息 -->
                 <% if (typeof success !== 'undefined' && success === 'true') { %>
                     <div class="success-message">
@@ -98,25 +90,34 @@
                     </div>
                 <% } %>
                 
-                <!-- 隐藏的抽奖活动ID -->
-                <input type="hidden" name="lottery" value="<%= currentLottery._id %>">
+                <!-- 添加抽奖活动选择下拉框 -->
+                <div class="form-group">
+                    <label for="lottery-select">选择抽奖活动</label>
+                    <select id="lottery-select" name="lottery" required>
+                        <% activeGames.forEach(game => { %>
+                            <option value="<%= game._id %>" <%= (currentLottery && currentLottery._id.toString() === game._id.toString()) ? 'selected' : '' %>>
+                                <%= game.title %> (截止: <%= new Date(game.endTime).toLocaleString() %>)
+                            </option>
+                        <% }); %>
+                    </select>
+                </div>
                 
-                <!-- 参与者ID输入框 -->             
-                <div class="form-group">                 
-                    <label for="participant-id">请输入你的燕云id</label>                 
-                    <input type="text" id="participant-id" name="participantId" required value="<%= typeof participantId !== 'undefined' ? participantId : '' %>">                 
-                    <small>不准乱输，违者失去当次抽奖资格并奖励雁雁的一个大比斗</small>             
-                </div>                          
+                <!-- 参与者ID输入框 -->
+                <div class="form-group">
+                    <label for="participant-id">请输入你的燕云id</label>
+                    <input type="text" id="participant-id" name="participantId" required value="<%= typeof participantId !== 'undefined' ? participantId : '' %>">
+                    <small>不准乱输，违者失去当次抽奖资格并奖励雁雁的一个大比斗</small>
+                </div>
                 
-                <!-- 截图上传 -->             
-                <div class="form-group">                 
-                    <label for="screenshot">上传截图：</label>                 
-                    <input type="file" id="screenshot" name="screenshot" accept="image/*" required>                 
-                    <small>上传百业活跃度截图</small>             
-                </div>                          
+                <!-- 截图上传 -->
+                <div class="form-group">
+                    <label for="screenshot">上传截图：</label>
+                    <input type="file" id="screenshot" name="screenshot" accept="image/*" required>
+                    <small>上传百业活跃度截图</small>
+                </div>
                 
-                <!-- 提交按钮 -->             
-                <button type="submit" class="btn">提交参与</button>         
+                <!-- 提交按钮 -->
+                <button type="submit" class="btn">提交参与</button>
             </form>
         <% } else { %>
             <!-- 如果没有进行中的抽奖活动 -->
@@ -124,21 +125,12 @@
                 <p>当前没有进行中的抽奖活动，请稍后再来！</p>
             </div>
         <% } %>
-    </div> 
-</section>  
-
-<!-- 管理员入口链接 --> 
-<div class="admin-link">     
-    <a href="/admin">进入管理员页面</a> 
-</div>  
-
-<div class="easter-egg-link">     
-    <a href="/easter-egg" title="点击查看彩蛋">🥚 发现彩蛋!</a> 
-</div>
+    </div>
+</section>
 
 <!-- 页脚 -->
 <footer style="text-align: center; margin-top: 30px; padding: 15px; color: #666; font-size: 0.9rem;">
-    <p>&copy; <%= new Date().getFullYear() %> 抽奖管理系统. 保留所有权利.</p>
+    <p>Copyright &copy; <%= new Date().getFullYear() %> Ann Hua. All rights reserved.</p>
 </footer>
 
 <script>

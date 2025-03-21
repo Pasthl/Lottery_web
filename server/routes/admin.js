@@ -27,7 +27,8 @@ router.get('/', (req, res) => {
     
     // 渲染admin视图
     res.render('admin', {
-      title: '管理员控制面板'
+      title: '管理员控制面板',
+      currentPage: 'admin'
     });
   } catch (err) {
     console.error('管理员页面渲染错误:', err);
@@ -74,7 +75,6 @@ router.post('/verify', (req, res) => {
   }
 });
 
-// 管理员仪表盘页面
 // 管理员仪表盘页面
 router.get('/dashboard', async (req, res) => {
   try {
@@ -304,6 +304,8 @@ router.post('/draw', async (req, res) => {
       winner: false // 确保之前没有被选为中奖者
     });
 
+    console.log('已批准的参与者:', approvedEntries.map(entry => entry.participantId)); //打印合格参与者的ID
+
     // 检查是否有足够的参与者
     if (approvedEntries.length === 0) {
       return res.status(400).render('404', {
@@ -348,6 +350,7 @@ router.get('/draw-result/:entryId', async (req, res) => {
     
     // 获取中奖者信息
     const winner = await Entry.findById(req.params.entryId);
+    
     
     // 检查是否找到中奖者
     if (!winner) {

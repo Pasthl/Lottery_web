@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        :root {
+            --neon-blue: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #ffff00;
+            --dark-purple: #1a0033;
+            --cyber-black: #0a0a0a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; /* 允许垂直滚动 */
+            background-color: var(--cyber-black);
+            color: var(--neon-blue);
+            font-family: 'Press Start 2P', monospace;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        /* CRT扫描线效果 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                transparent 0%,
+                rgba(10, 10, 10, 0.1) 50%,
+                transparent 100%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanline 10s linear infinite;
+        }
+        
+        /* CRT闪烁效果 */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 16, 16, 0.1);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1001;
+            animation: flicker 0.15s infinite;
+        }
+        
+        @keyframes scanline {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 0.1; }
+            50% { opacity: 0; }
+            100% { opacity: 0.1; }
+        }
+        
+        .screen-container {
+            width: 98%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 40px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--neon-pink);
+            border-radius: 5px;
+            box-shadow: 0 0 15px var(--neon-pink),
+                        inset 0 0 15px var(--neon-blue);
+            position: relative;
+            z-index: 1;
+            overflow: visible; /* 允许内容溢出 */
+            text-align: left; /* 左对齐 */
+        }
+        
+        .screen-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1),
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .header {
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 2px solid var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+            letter-spacing: 2px;
+            font-family: 'Press Start 2P', monospace;
+            font-weight: bold;
+            position: relative;
+            text-align: left; /* 左对齐 */
+        }
+        
+        h1 {
+            color: var(--neon-pink);
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 5px var(--neon-pink),
+                         0 0 10px var(--neon-pink);
+            margin-bottom: 10px;
+            text-align: left; /* 左对齐 */
+        }
+        
+        .terminal-text {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1rem;
+            line-height: 1.8; /* 进一步增加行高 */
+            margin-bottom: 20px; /* 进一步增加段落间距 */
+            padding: 4px;
+            overflow: visible;
+            position: relative;
+            white-space: pre-wrap;
+            text-align: left; /* 左对齐 */
+            padding-right: 30px; /* 确保文本右侧有足够空间显示光标 */
+        }
+        
+        .terminal-label {
+            display: inline;
+        }
+        
+        .typing-content {
+            display: inline;
+            position: relative;
+            white-space: pre-wrap; /* 确保换行正常 */
+            word-break: break-word; /* 防止单词过长导致布局问题 */
+        }
+        
+        .typing-content::after {
+            content: '|';
+            position: absolute;
+            right: -20px; /* 将光标放在文本末尾更远处 */
+            color: var(--neon-blue);
+            animation: blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes blink-caret {
+            from, to { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        .special-text {
+            color: var(--neon-yellow);
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--neon-yellow);
+        }
+        
+        .reward {
+            font-size: 2rem;
+            margin: 20px 0;
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink),
+                         0 0 10px var(--neon-pink);
+            padding: 10px;
+            border: 1px dashed var(--neon-pink);
+            background-color: rgba(255, 0, 255, 0.1);
+            display: inline-block;
+            text-align: left; /* 左对齐 */
+        }
+        
+        .glitch-effect {
+            position: relative;
+            animation: glitch 1s linear infinite;
+        }
+        
+        @keyframes glitch {
+            0% { text-shadow: 3px 0 0 rgba(255, 0, 255, 0.5), -3px 0 0 rgba(0, 255, 255, 0.5); }
+            25% { text-shadow: -3px 0 0 rgba(255, 0, 255, 0.5), 3px 0 0 rgba(0, 255, 255, 0.5); }
+            50% { text-shadow: 3px 0 0 rgba(255, 0, 255, 0.5), -3px 0 0 rgba(0, 255, 255, 0.5); }
+            75% { text-shadow: -3px 0 0 rgba(255, 0, 255, 0.5), 3px 0 0 rgba(0, 255, 255, 0.5); }
+            100% { text-shadow: 3px 0 0 rgba(255, 0, 255, 0.5), -3px 0 0 rgba(0, 255, 255, 0.5); }
+        }
+        
+        .cyber-button {
+            display: inline-block;
+            padding: 15px 25px;
+            margin: 10px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            color: white;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border: none;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            transition: 0.3s;
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0% 70%);
+            /* 确保按钮文本始终可见 */
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        .cyber-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .cyber-button:hover::before {
+            left: 100%;
+        }
+        
+        .cyber-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--neon-blue),
+                        0 0 20px var(--neon-pink);
+        }
+        
+        .buttons-container {
+            display: flex;
+            justify-content: flex-start; /* 左对齐 */
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .bird-photo-container {
+            text-align: center;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .bird-photo {
+            max-width: 60%;
+            height: auto;
+            border: 2px solid var(--neon-pink);
+            position: relative;
+            filter: drop-shadow(0 0 10px var(--neon-blue)) contrast(120%) brightness(110%);
+            margin: 0 auto; /* 居中图片 */
+            display: block;
+        }
+        
+        .bird-photo::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                               rgba(255, 0, 255, 0.2),
+                               transparent,
+                               rgba(0, 255, 255, 0.2));
+            pointer-events: none;
+        }
+        
+        .pixel-particles {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background-color: var(--neon-pink);
+            top: -20px;
+            filter: blur(1px);
+            animation: fall 5s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+                filter: hue-rotate(0deg);
+            }
+            50% {
+                filter: hue-rotate(180deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+                filter: hue-rotate(360deg);
+            }
+        }
+        
+        .stage {
+            display: none;
+        }
+        
+        .stage.active {
+            display: block;
+        }
+        
+        .glitch-img {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            text-align: center; /* 居中图片容器 */
+        }
+        
+        .glitch-img img {
+            width: 60%;
+            height: auto;
+            position: relative;
+            margin: 0 auto; /* 居中图片 */
+            display: block;
+        }
+        
+        .glitch-img::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent 0%, rgba(255, 0, 255, 0.1) 50%, transparent 100%);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim {
+            0% { 
+                transform: translate(0);
+                opacity: 0.3;
+            }
+            20% {
+                transform: translate(-10px, 5px);
+                opacity: 0.5;
+            }
+            40% {
+                transform: translate(-5px, -5px);
+                opacity: 0.2;
+            }
+            60% {
+                transform: translate(5px, 10px);
+                opacity: 0.4;
+            }
+            80% {
+                transform: translate(5px, -5px);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(-5px, 5px);
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 阶段1 -->
+    <div class="screen-container stage active" id="stage1">
+        <div class="header">
+            <div class="terminal-text typing-container">
+                <h1 class="glitch-effect">ACCESS RIGHTS OBTAINED: SUCCESS</h1>
+            </div>
+            <div class="terminal-text typing-container">
+                <p class="terminal-label">LOADING SECRET FILES: <span class="typing-content" data-text="IN PROGRESS...">IN PROGRESS...</span></p>
+            </div>
+            <div class = "terminal-text typing-container">
+                <p class="terminal-label">WARNING: <span class="typing-content special-text" data-text = "中文系统已崩溃...">中文系统已崩溃...</span></p>
+            </div>    
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">DETECTED: <span class="typing-content special-text" data-text = "SOMEONE ATTEMPTING TO ACCESS HIDDEN CONTENT">SOMEONE ATTEMPTING TO ACCESS HIDDEN CONTENT</span></p>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">SYSTEM ANALYSIS: <span class="typing-content" data-text="YOU ARE A CURIOUS USER">YOU ARE A CURIOUS USER</span></p>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">CALCULATING REWARD: <span class="typing-content" data-text="PROCESSING...">PROCESSING...</span></p>
+        </div>
+        
+        <div class="terminal-text">
+            <div class="reward glitch-effect">0 REWARDS</div>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">REASON: <span class="typing-content special-text" data-text = "CRAZY THURSDAY SYSTEM MAINTENANCE">CRAZY THURSDAY SYSTEM MAINTENANCE</span></p>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">CONTINUE EXPLORING SYSTEM CORE: <span class="typing-content" data-text="Y/N?">Y/N?</span></p>
+        </div>
+        
+        <div class="buttons-container">
+            <a href="javascript:void(0)" onclick="showStage('stage2')" class="cyber-button">ACCESS SYSTEM</a>
+            <a href="/" class="cyber-button">EXIT TERMINAL</a>
+        </div>
+    </div>
+    
+    <!-- 阶段2 -->
+    <div class="screen-container stage" id="stage2">
+        <div class="header">
+            <div class="terminal-text typing-container">
+                <h1 class="glitch-effect">WARNING: SYSTEM CORE AREA</h1>
+            </div>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">ALERT: <span class="typing-content special-text" data-text="UNAUTHORIZED ACCESS ATTEMPT DETECTED">UNAUTHORIZED ACCESS ATTEMPT DETECTED</span></p>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">SECURITY PROTOCOL: <span class="typing-content" data-text="PROCEEDING WILL BE IRREVERSIBLE">PROCEEDING WILL BE IRREVERSIBLE</span></p>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">CONFIRM CORE ACCESS PERMISSION: <span class="typing-content" data-text="Y/N?">Y/N?</span></p>
+        </div>
+        
+        <div class="buttons-container">
+            <a href="javascript:void(0)" onclick="showStage('stage3')" class="cyber-button">CONFIRM ACCESS</a>
+            <a href="/" class="cyber-button">EMERGENCY EXIT</a>
+        </div>
+    </div>
+    
+    <!-- 阶段3 -->
+    <div class="screen-container stage" id="stage3">
+        <div class="header">
+            <div class="terminal-text typing-container">
+                <h1 class="glitch-effect">CORE DATA:ACQUISITION SUCCESSFUL</h1>
+            </div>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">STATUS: <span class="typing-content" data-text="DECRYPTING CORE DATA...">DECRYPTING CORE DATA...</span></p>
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">DISCOVERY: <span class="typing-content special-text" data-text="CONFIDENTIAL BIRD DATA FOUND">CONFIDENTIAL BIRD DATA FOUND</span></p>
+        </div>
+        
+        <div class="glitch-img">
+            <img src="/image/bird.png" alt="Bird Photo" class="bird-photo">
+        </div>
+        
+        <div class="terminal-text typing-container">
+            <p class="terminal-label">DATA EVALUATION: <span class="typing-content" data-text="AYAN'S BIRD, EXTREMELY CUTE">AYAN'S BIRD, EXTREMELY CUTE</span></p>
+        </div>
+        
+        <div class="buttons-container">
+            <a href="/" class="cyber-button">CLOSE TERMINAL</a>
+        </div>
+    </div>
+    
+    <!-- 像素粒子效果 -->
+    <script>
+        // 显示特定阶段
+        function showStage(stageId) {
+            // 隐藏所有阶段
+            document.querySelectorAll('.stage').forEach(stage => {
+                stage.classList.remove('active');
+            });
+            
+            // 显示指定阶段
+            document.getElementById(stageId).classList.add('active');
+            
+            // 重新初始化打字机效果
+            initTypewriterEffects();
+            
+            // 最后阶段额外的像素粒子
+            if (stageId === 'stage3') {
+                // 在最后阶段添加更多粒子
+                for (let i = 0; i < 100; i++) {
+                    createPixelParticle();
+                }
+            }
+        }
+        
+        // 初始化打字机效果
+        function initTypewriterEffects() {
+            document.querySelectorAll('.typing-container').forEach(container => {
+                const typingElements = container.querySelectorAll('.typing-content');
+                
+                typingElements.forEach((element, index) => {
+                    // 获取要显示的文本
+                    let text = element.getAttribute('data-text');
+                    if (!text) {
+                        // 如果data-text不存在，使用元素的原始内容
+                        text = element.textContent.trim();
+                        element.setAttribute('data-text', text);
+                    }
+                    
+                    // 保存原始HTML以保留span等
+                    const originalHTML = element.innerHTML;
+                    // 清除内容
+                    element.textContent = '';
+                    
+                    // 延迟开始动画
+                    setTimeout(() => {
+                        typeAndDelete(element, text, originalHTML);
+                    }, index * 700); // 每个元素错开700ms
+                });
+            });
+        }
+        
+        // 打字和删除效果
+        function typeAndDelete(element, text, originalHTML) {
+            let charIndex = 0;
+            let isTyping = true;
+            let timeoutId;
+            
+            // 更新文本的函数
+            function updateText() {
+                // 清除之前的超时
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                
+                if (isTyping) {
+                    // 打字过程
+                    charIndex++;
+                    
+                    if (charIndex <= text.length) {
+                        try {
+                            // 尝试保留HTML格式
+                            element.innerHTML = originalHTML.substring(0, charIndex);
+                        } catch (e) {
+                            // 如果出错，使用纯文本
+                            element.textContent = text.substring(0, charIndex);
+                        }
+                        
+                        // 打字速度调慢 - 70-100ms
+                        timeoutId = setTimeout(updateText, 70 + Math.random() * 30);
+                    } else {
+                        // 打字结束，暂停
+                        isTyping = false;
+                        // 显示完整文本一段较长时间
+                        timeoutId = setTimeout(updateText, 4000); // 等待4秒后开始删除
+                    }
+                } else {
+                    // 删除过程
+                    charIndex--;
+                    
+                    if (charIndex > 0) {
+                        try {
+                            // 尝试保留HTML格式
+                            element.innerHTML = originalHTML.substring(0, charIndex);
+                        } catch (e) {
+                            // 如果出错，使用纯文本
+                            element.textContent = text.substring(0, charIndex);
+                        }
+                        
+                        // 删除速度稍快
+                        timeoutId = setTimeout(updateText, 30 + Math.random() * 20);
+                    } else {
+                        // 删除结束，暂停后重新开始
+                        isTyping = true;
+                        element.innerHTML = '';
+                        timeoutId = setTimeout(updateText, 1500); // 等待1.5秒后重新开始打字
+                    }
+                }
+            }
+            
+            // 开始动画
+            updateText();
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化打字机效果
+            initTypewriterEffects();
+            
+            // 创建像素粒子
+            for (let i = 0; i < 50; i++) {
+                createPixelParticle();
+            }
+            
+            // 继续定期创建新粒子
+            setInterval(() => {
+                createPixelParticle();
+            }, 300);
+        });
+        
+        function createPixelParticle() {
+            const pixel = document.createElement('div');
+            pixel.classList.add('pixel-particles');
+            
+            // 随机位置
+            pixel.style.left = Math.random() * 100 + 'vw';
+            
+            // 随机颜色
+            const colors = [
+                'var(--neon-blue)', 
+                'var(--neon-pink)', 
+                'var(--neon-yellow)', 
+                '#00ff00', 
+                '#ff00ff'
+            ];
+            pixel.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 随机大小
+            const size = Math.random() * 4 + 2;
+            pixel.style.width = size + 'px';
+            pixel.style.height = size + 'px';
+            
+            // 随机动画持续时间
+            const duration = Math.random() * 5 + 3;
+            pixel.style.animationDuration = duration + 's';
+            
+            // 随机动画延迟
+            pixel.style.animationDelay = Math.random() * 2 + 's';
+            
+            document.body.appendChild(pixel);
+            
+            // 动画结束后移除元素
+            setTimeout(() => {
+                pixel.remove();
+            }, (duration + 2) * 1000);
+        }
+        
+        // 终端闪烁效果
+        setInterval(() => {
+            const terminals = document.querySelectorAll('.terminal-text');
+            terminals.forEach(term => {
+                if (Math.random() > 0.95) {
+                    term.style.opacity = '0.8';
+                    setTimeout(() => {
+                        term.style.opacity = '1';
+                    }, 50);
+                }
+            });
+        }, 200);
+    </script>
+</body>
+</html>

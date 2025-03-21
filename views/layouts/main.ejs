@@ -7,6 +7,27 @@
     <!-- 引入样式表 -->
     <link rel="stylesheet" href="/css/style.css">
 </head>
+<!-- 网站顶部导航栏 -->
+<!-- 只在主页显示导航栏 -->
+<% if (typeof currentPage !== 'undefined' && currentPage === 'home') { %>
+    <header class="top-nav">
+        <div class="nav-container">
+            <!-- 网站品牌/名称 -->
+            <div class="brand">
+                <a href="/">无厌伽蓝</a>
+            </div>
+            
+            <!-- 右侧导航链接 -->
+            <div class="nav-links">
+                <!-- 彩蛋按钮 -->
+                <a href="/easter-egg" class="nav-btn easter-egg-btn" title="发现彩蛋"></a>
+                
+                <!-- 管理员入口 -->
+                <a href="/admin" class="nav-btn admin-btn" title="管理员入口"></a>
+            </div>
+        </div>
+    </header>
+<% } %>
 <body>
     <div class="container">
         <!-- 页面主要内容将被插入到这里 -->

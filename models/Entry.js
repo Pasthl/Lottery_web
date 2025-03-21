@@ -15,7 +15,7 @@ const EntrySchema = new mongoose.Schema({
         required: [true, '请提供截图URL']
     },
     
-    // 关联的抽奖活动ID - 改为 lottery
+    // 关联的抽奖活动ID
     lottery: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Lottery'

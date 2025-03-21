@@ -65,6 +65,21 @@ app.use('/admin', require('./server/routes/admin'));
 // 再注册主路由
 app.use('/', require('./server/routes/main')); //因为main.js的最后还有一个404，导致阻塞了admin的路由
 
+// 设置当前页面
+app.use((req, res, next) => {
+  // 默认情况下，currentPage 为 'other'
+  res.locals.currentPage = 'other';
+  
+  // 根据 URL 路径设置当前页面
+  if (req.path === '/' || req.path === '/index') {
+      res.locals.currentPage = 'home';
+  } else if (req.path.startsWith('/admin')) {
+      res.locals.currentPage = 'admin';
+  }
+  
+  next();
+});
+
 // 404处理 - 必须在其他所有路由之后
 app.all('*', (req, res) => {
   res.status(404).render('404', {
