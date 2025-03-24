@@ -1,0 +1,406 @@
+/* responsive.css - 抽奖网站响应式样式 */
+
+/* 基本响应式设置 */
+* {
+    box-sizing: border-box;
+  }
+  
+  /* 视口设置 - 需要在HTML的head中添加:
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> */
+  
+  /* 图片响应式设置 */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* 大屏幕设备 (>1200px) 的样式 */
+  @media only screen and (min-width: 1201px) {
+    .container {
+      max-width: 1140px;
+    }
+  }
+  
+  /* 平板电脑和小型笔记本 (768px - 1200px) 的样式 */
+  @media only screen and (max-width: 1200px) {
+    .container {
+      max-width: 960px;
+      padding: 0 15px;
+    }
+    
+    h1 {
+      font-size: 2.2rem;
+    }
+    
+    h2 {
+      font-size: 1.6rem;
+    }
+    
+    .timer span {
+      min-width: 45px;
+      padding: 4px 8px;
+    }
+    
+    .dashboard-container {
+      padding: 15px;
+    }
+  }
+  
+  /* 平板电脑 (576px - 768px) 的样式 */
+  @media only screen and (max-width: 768px) {
+    .container {
+      max-width: 720px;
+    }
+    
+    body {
+      padding: 10px;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+    
+    h2 {
+      font-size: 1.4rem;
+    }
+    
+    .subtitle {
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    
+    /* 导航栏调整 */
+    .nav-container {
+      padding: 0 10px;
+    }
+    
+    .brand a {
+      font-size: 1.2rem;
+    }
+    
+    /* 倒计时调整 */
+    .countdown {
+      padding: 10px;
+    }
+    
+    .timer {
+      font-size: 1.5rem;
+    }
+    
+    .timer span {
+      padding: 3px 6px;
+      min-width: 40px;
+    }
+    
+    /* 表单调整 */
+    .btn {
+      padding: 10px 15px;
+    }
+    
+    /* 仪表盘调整 */
+    .dashboard-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .dashboard-header h1 {
+      margin-bottom: 10px;
+    }
+    
+    .user-info {
+      margin-bottom: 10px;
+    }
+    
+    /* 表格调整 */
+    .table th, .table td {
+      padding: 8px 10px;
+    }
+    
+    /* 卡片调整 */
+    .card {
+      padding: 15px;
+    }
+  }
+  
+  /* 手机端 (小于576px) 的样式 */
+  @media only screen and (max-width: 576px) {
+    .container {
+      max-width: 100%;
+      padding: 0 10px;
+    }
+    
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+    
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+    
+    /* 导航栏调整 */
+    .nav-container {
+      flex-wrap: wrap;
+    }
+    
+    .brand {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .nav-links {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    /* 倒计时调整 */
+    .timer {
+      font-size: 1.2rem;
+    }
+    
+    .timer span {
+      padding: 3px 5px;
+      min-width: 30px;
+      margin: 0 2px;
+    }
+    
+    /* 表单调整 */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      margin-bottom: 5px;
+    }
+    
+    input[type="text"], 
+    input[type="file"] {
+      padding: 10px;
+      font-size: 14px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+    }
+    
+    /* 中奖名单表格样式调整 */
+    .winners-table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    .winner-row td {
+      padding: 8px 5px;
+    }
+    
+    .winner-id,
+    .lottery-name,
+    .winner-date {
+      width: auto;
+      font-size: 14px;
+    }
+    
+    /* 管理员后台调整 */
+    .admin-panel {
+      padding: 10px;
+    }
+    
+    .dashboard-container {
+      padding: 10px;
+    }
+    
+    .user-info {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .user-info span {
+      margin-right: 0;
+      margin-bottom: 5px;
+    }
+    
+    .logout-btn,
+    .backtomenu-btn {
+      width: 100%;
+      text-align: center;
+      margin-top: 5px;
+    }
+    
+    /* 表格滚动 */
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 按钮样式调整 */
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    
+    .inline-form {
+      margin-right: 2px;
+    }
+    
+    /* 表单容器调整 */
+    .admin-login-form {
+      padding: 15px;
+    }
+    
+    /* 错误消息调整 */
+    .error-message,
+    .success-message {
+      padding: 8px;
+      font-size: 14px;
+    }
+  }
+  
+  /* 横屏手机特殊处理 */
+  @media only screen and (max-width: 768px) and (orientation: landscape) {
+    body {
+      padding: 5px;
+    }
+    
+    .container {
+      max-width: 100%;
+    }
+    
+    /* 调整表单在横屏时的布局 */
+    .entry-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    /* 导航区域特别处理 */
+    .nav-container {
+      flex-wrap: nowrap;
+    }
+    
+    .brand {
+      width: auto;
+      margin-bottom: 0;
+    }
+    
+    .nav-links {
+      width: auto;
+    }
+  }
+  
+  /* 针对特定组件的样式调整 */
+  
+  /* 1. 文件上传区域优化 */
+  @media only screen and (max-width: 576px) {
+    .custom-file-upload {
+      padding: 8px;
+      font-size: 14px;
+    }
+    
+    /* 调整文件选择器样式 */
+    input[type="file"] {
+      font-size: 13px;
+    }
+  }
+  
+  /* 2. 管理员表单特殊处理 */
+  @media only screen and (max-width: 576px) {
+    /* 设置表单布局 */
+    .settings-form .form-group {
+      margin-bottom: 12px;
+    }
+    
+    /* 日期选择器特别处理 */
+    input[type="datetime-local"] {
+      padding: 8px;
+      font-size: 14px;
+    }
+  }
+  
+  /* 3. 验证码输入表单特别处理 */
+  @media only screen and (max-width: 576px) {
+    .verification-form {
+      padding: 10px;
+    }
+  }
+  
+  /* 4. 彩蛋页面响应式处理 */
+  @media only screen and (max-width: 576px) {
+    .easter-egg-container {
+      padding: 10px;
+    }
+    
+    .easter-egg-content {
+      font-size: 14px;
+    }
+  }
+  
+  /* 5. 修复表格在小屏幕上的显示问题 */
+  @media only screen and (max-width: 576px) {
+    .table-responsive {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 使表格在小屏幕上更紧凑 */
+    .table th, 
+    .table td {
+      white-space: nowrap;
+      padding: 6px 8px;
+    }
+    
+    /* 状态标签调整 */
+    .status {
+      padding: 3px 6px;
+      font-size: 12px;
+    }
+  }
+  
+  /* 6. 修复操作按钮在移动端的布局 */
+  @media only screen and (max-width: 576px) {
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .action-buttons .btn,
+    .action-buttons form {
+      margin-bottom: 5px;
+      width: 100%;
+    }
+  }
+  
+  /* 7. 为超小屏幕设备(小于375px)做额外优化 */
+  @media only screen and (max-width: 375px) {
+    h1 {
+      font-size: 1.3rem;
+    }
+    
+    .timer {
+      font-size: 1rem;
+    }
+    
+    .timer span {
+      padding: 2px 4px;
+      min-width: 25px;
+    }
+    
+    /* 调整表单标签 */
+    label {
+      font-size: 14px;
+    }
+    
+    /* 调整错误信息 */
+    .error-message,
+    .success-message {
+      font-size: 13px;
+      padding: 6px;
+    }
+  }
