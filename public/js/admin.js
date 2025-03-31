@@ -1,4 +1,20 @@
 // public/js/admin.js
+// 确保这个函数定义在全局范围内（不在任何其他函数内部）
+function confirmDeleteNonWinners() {
+    if (confirm('确定要删除所有非中奖条目吗？此操作不可撤销！')) {
+        // 使用跟踪语句来调试
+        console.log('用户确认删除非中奖条目');
+        
+        // 创建表单并提交
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/deleteNonWinners';
+        document.body.appendChild(form);
+        form.submit();
+    } else {
+        console.log('用户取消了操作');
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化AJAX功能

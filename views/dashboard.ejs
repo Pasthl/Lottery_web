@@ -126,7 +126,14 @@
         
         <!-- 参与者列表 -->
         <div class="card" id="entries-section">
-            <h2>参与者管理</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>参与者管理</h2>
+                <button id="deleteNonWinners" class="btn btn-warning" 
+                        onclick="confirmDeleteNonWinners()"
+                        style="background-color: #ff9800; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                    清理非中奖条目
+                </button>
+            </div>
             
             <% if (entries && entries.length > 0) { %>
                 <div class="table-responsive">

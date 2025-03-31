@@ -265,6 +265,43 @@ router.post('/delete/:id', async (req, res) => {
   }
 });
 
+// 删除所有非中奖条目
+router.post('/deleteNonWinners', async (req, res) => {
+  try {
+      // 查找并删除所有 winner !== true 的条目
+      const result = await Entry.deleteMany({ winner: { $ne: true } });
+      
+      // 记录操作日志
+      console.log(`管理员清理了 ${result.deletedCount} 个非中奖条目`);
+      
+      // 如果是AJAX请求
+      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+          return res.json({
+              success: true,
+              message: `成功删除了 ${result.deletedCount} 个非中奖条目`
+          });
+      }
+      
+      // 常规表单提交
+      req.flash('success', `成功删除了 ${result.deletedCount} 个非中奖条目`);
+      res.redirect('/admin/dashboard');
+  } catch (error) {
+      console.error('删除非中奖条目失败:', error);
+      
+      // 如果是AJAX请求
+      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+          return res.status(500).json({
+              success: false,
+              message: '操作失败，请重试'
+          });
+      }
+      
+      // 常规表单提交
+      req.flash('error', '操作失败，请重试');
+      res.redirect('/admin/dashboard');
+  }
+});
+
 // 手动开奖功能
 router.post('/draw', async (req, res) => {
   try {

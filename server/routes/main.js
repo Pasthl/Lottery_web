@@ -45,11 +45,13 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 限制5MB
 });
 
-// 主页路由
+// 主页路由 
 router.get('/', async (req, res) => {
     try {
         // 判断是否有成功提交的消息
         const success = req.query.success === 'true' ? 'true' : undefined;
+        const error = req.query.error || undefined;
+        const participantId = req.query.id || undefined;
         
         // 获取所有进行中的抽奖活动
         let activeGames = [];
@@ -57,7 +59,7 @@ router.get('/', async (req, res) => {
         
         try {
             // 查找所有进行中的抽奖活动
-            activeGames = await Lottery.find({ 
+            activeGames = await Lottery.find({
                 status: 1, // 状态为"进行中"
                 endTime: { $gt: new Date() } // 结束时间大于当前时间
             }).sort({ endTime: 1 }); // 按结束时间升序排序
@@ -81,7 +83,9 @@ router.get('/', async (req, res) => {
             currentLottery: activeGames.length > 0 ? activeGames[0] : null, // 保留兼容性
             activeGames,  // 传递所有进行中的抽奖活动
             winners,
-            success
+            success,
+            error,
+            participantId
         });
     } catch (err) {
         console.error('主页加载错误:', err);

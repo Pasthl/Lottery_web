@@ -11,6 +11,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 // 导入session模块，用于管理用户会话
 const session = require('express-session');
+const flash = require('connect-flash');
 
 // 加载环境变量
 dotenv.config();
@@ -27,6 +28,22 @@ const PORT = process.env.PORT || 5000;
 connectDB()
   .then(() => console.log('数据库连接成功'))
   .catch(err => console.error(`数据库连接失败: ${err.message}`));
+
+// 设置 session
+app.use(session({
+  secret: 'some secret key',
+  resave: false,
+  saveUninitialized: false
+}));
+
+// 设置 flash
+app.use(flash());
+
+// 全局设置 flash 消息
+app.use((req, res, next) => {
+  res.locals.messages = req.flash();
+  next();
+});
 
 //设置静态文件目录，使浏览器可以直接访问public文件夹中的CSS、JavaScript、图片等静态资源
 app.use(express.static('public'));
