@@ -105,6 +105,6 @@ app.all('*', (req, res) => {
 });
 
 //启动Express服务器，监听指定的PORT
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(3768, '0.0.0.0', () => {
+  console.log('Server running at port 3768');
 });

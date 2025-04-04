@@ -265,42 +265,58 @@ router.post('/delete/:id', async (req, res) => {
   }
 });
 
-// 删除所有非中奖条目
 router.post('/deleteNonWinners', async (req, res) => {
   try {
-      // 查找并删除所有 winner !== true 的条目
-      const result = await Entry.deleteMany({ winner: { $ne: true } });
-      
-      // 记录操作日志
-      console.log(`管理员清理了 ${result.deletedCount} 个非中奖条目`);
-      
-      // 如果是AJAX请求
-      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-          return res.json({
-              success: true,
-              message: `成功删除了 ${result.deletedCount} 个非中奖条目`
-          });
+    // 先查出所有非中奖条目
+    const entries = await Entry.find({ winner: { $ne: true } });
+
+    let deletedCount = 0;
+
+    for (const entry of entries) {
+      // 删除对应文件
+      if (entry.screenshot) {
+        const filePath = path.join(__dirname, '../../public', entry.screenshot);
+        try {
+          await fs.promises.access(filePath);
+          await fs.promises.unlink(filePath);
+          console.log('已删除文件:', filePath);
+        } catch (fileErr) {
+          console.log('文件不存在或删除失败:', filePath);
+        }
       }
-      
-      // 常规表单提交
-      req.flash('success', `成功删除了 ${result.deletedCount} 个非中奖条目`);
-      res.redirect('/admin/dashboard');
+    }
+
+    // 然后删除数据库记录
+    const result = await Entry.deleteMany({ winner: { $ne: true } });
+    deletedCount = result.deletedCount;
+
+    console.log(`管理员清理了 ${deletedCount} 个非中奖条目`);
+
+    // 返回响应
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({
+        success: true,
+        message: `成功删除了 ${deletedCount} 个非中奖条目`
+      });
+    }
+
+    req.flash('success', `成功删除了 ${deletedCount} 个非中奖条目`);
+    res.redirect('/admin/dashboard');
   } catch (error) {
-      console.error('删除非中奖条目失败:', error);
-      
-      // 如果是AJAX请求
-      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-          return res.status(500).json({
-              success: false,
-              message: '操作失败，请重试'
-          });
-      }
-      
-      // 常规表单提交
-      req.flash('error', '操作失败，请重试');
-      res.redirect('/admin/dashboard');
+    console.error('删除非中奖条目失败:', error);
+
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.status(500).json({
+        success: false,
+        message: '操作失败，请重试'
+      });
+    }
+
+    req.flash('error', '操作失败，请重试');
+    res.redirect('/admin/dashboard');
   }
 });
+
 
 // 手动开奖功能
 router.post('/draw', async (req, res) => {
